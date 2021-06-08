@@ -43,7 +43,14 @@ def get_expanded_article_pages(page_ref: str) -> List[int]:
 
 
 def get_article_index_from_file(filename: Union[str, bytes, os.PathLike]) -> pd.DataFrame:
+    """Returns a pandas data frame that contains a processed version if the Courier article index
 
+    Args:
+        filename (Union[str, bytes, os.PathLike]): [description]
+
+    Returns:
+        pd.DataFrame: [description]
+    """
     columns = [
         'Record number',
         'Catalogue - Title',
