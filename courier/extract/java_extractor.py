@@ -1,8 +1,10 @@
 # %%
 # pyright: reportMissingImports=false
 # pylint: disable=import-error, wrong-import-position
+from courier.utils import split_by_idx
+from dataclasses import dataclass
 import os
-from typing import Iterator, List, Tuple, Union
+from typing import List, Tuple, Union
 
 import jpype
 import jpype.imports
@@ -20,20 +22,6 @@ if not jpype.isJVMStarted():
 import org.apache.pdfbox.tools as pdfbox_tools  # isort: skip  # noqa: E402
 
 
-# %%
-
-
-def split_by_idx(S: str, list_of_indices: List[int]) -> Iterator[str]:
-    """See: https://stackoverflow.com/a/57342460"""
-    left, right = 0, list_of_indices[0]
-    yield S[left:right]
-    left = right
-    for right in list_of_indices[1:]:
-        yield S[left:right]
-        left = right
-    yield S[left:]
-
-
 def insert_titles(page: str, titles: List[Tuple[str, int]]) -> str:
     if not titles:
         return page
@@ -41,27 +29,42 @@ def insert_titles(page: str, titles: List[Tuple[str, int]]) -> str:
     titled_text = ''.join(list(roundrobin(parts, [f'\n[___{title[0]}___]\n' for title in titles])))
     return titled_text
 
+@dataclass
+class ExtractedIssue:
+    """Container for extracted raw text, and titles (text and positiopn) for a single issue.
+
+    Note:
+      - Page numbers are not corrected for double-pages (represented as a single image in PDF).
+    """
+    pages: List[str]
+    titles: List[Tuple[str, int]]
+
+    @property
+    def page_count(self) -> int:
+        return len(self.pages or [])
+
+
 
 # TODO: Use this in `pdfbox_extractor` or new `custom_pdfbox_extractor`
 # TODO: Add parameters `titleFontSizeInPt`, `minTitleLengthInCharacters`
 class JavaExtractor:
-    def extract_texts(self, filename: Union[str, os.PathLike]) -> List[str]:
-        extractor = pdfbox_tools.PDFCourier2Text(5.5, 8)
-        pages = [str(page) for page in extractor.extractText(filename)]
-        titles = [[(str(y.title), int(y.position)) for y in x] for x in extractor.getTitles()]  # pylint: disable=W0631
-        text = [insert_titles(page, page_titles) for page, page_titles in zip(pages, titles)]
-        return text
 
+    def __init__(self):
+        self.extractor = pdfbox_tools.PDFCourier2Text(5.5, 8)
 
-# %%
-java_extractor = JavaExtractor()
-content = java_extractor.extract_texts(str(CONFIG.pdf_dir / '012656engo.pdf'))
-# print(content[5])
+    def extract_issue(self, filename: Union[str, os.PathLike]) -> ExtractedIssue:
+        pages = [str(page) for page in self.extractor.extractText(filename)]
+        titles = [[(str(y.title), int(y.position)) for y in x] for x in self.extractor.getTitles()]  # pylint: disable=W0631
+        issue: ExtractedIssue = ExtractedIssue(
+            pages=pages,
+            titles=titles,
+        )
+        return issue
 
-# %%
-with open(CONFIG.project_root / 'tests/output/java_extractor_tmp.txt', 'w') as fp:
-    for i, x in enumerate(content, start=1):
-        fp.write(f'---------- Page {i} ----------\n{x}\n')
-
-len(content)
-# %%
+# java_extractor = JavaExtractor()
+# content = java_extractor.extract_texts(str(CONFIG.pdf_dir / '012656engo.pdf'))
+# # print(content[5])
+# with open(CONFIG.project_root / 'tests/output/java_extractor_tmp.txt', 'w') as fp:
+#     for i, x in enumerate(content, start=1):
+#         fp.write(f'---------- Page {i} ----------\n{x}\n')
+# len(content)
