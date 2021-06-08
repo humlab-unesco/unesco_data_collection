@@ -5,7 +5,7 @@ import re
 import sys
 from pathlib import Path
 from statistics import median
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, Iterator, List
 
 import pdf2image
 
@@ -28,25 +28,6 @@ def pdf_stats() -> Dict[str, int]:
         'mean': round(sum(tot_pages) / len(tot_pages)),
         'median': round(median(tot_pages)),
     }
-
-
-def get_double_pages(courier_id: str) -> list:
-
-    with open(CONFIG.exclusions_file, newline='') as fp:
-        reader = csv.reader(fp, delimiter=';')
-        exclusions = [line[0] for line in reader]
-    if courier_id in exclusions:
-        return []
-
-    with open(CONFIG.double_pages_file, 'r') as fp:
-        reader = csv.reader(fp, delimiter=';')
-        pages = [list(map(int, line[1].split())) for line in reader if courier_id in line]
-
-    return flatten(pages)
-
-
-def corrected_page_number(courier_id: str, page_number: int) -> int:
-    return page_number - len([dpn for dpn in get_double_pages(courier_id) if dpn < page_number])
 
 
 def get_illegal_chars() -> re.Pattern:
@@ -104,6 +85,15 @@ def get_courier_ids() -> List[str]:
     issues = sorted(list(Path(CONFIG.pdf_dir).glob('*.pdf')))
     return [x.stem for x in issues]
 
+def split_by_idx(S: str, list_of_indices: List[int]) -> Iterator[str]:
+    """See: https://stackoverflow.com/a/57342460"""
+    left, right = 0, list_of_indices[0]
+    yield S[left:right]
+    left = right
+    for right in list_of_indices[1:]:
+        yield S[left:right]
+        left = right
+    yield S[left:]
 
 if __name__ == '__main__':
     pass
