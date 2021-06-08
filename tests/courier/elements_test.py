@@ -1,10 +1,11 @@
+from courier.extract.java_extractor import ExtractedIssue
 import warnings
 from pathlib import Path
 
 import pytest
 import untangle
 
-from courier.elements import Article, CourierIssue, Page, get_issue_content, get_issue_index, read_xml
+from courier.elements import Article, CourierIssue, Page, get_xml_issue_content, get_pdf_issue_content, read_xml
 
 # TODO: Mock
 
@@ -19,30 +20,22 @@ def test_read_xml_removes_control_chars():
     assert content.content.cdata == expected
 
 
-def test_get_courier_issue_index_return_expected_values():
-    assert len(get_issue_index('061468')) == 3
-
-
-def test_get_courier_issue_index_with_invalid_id_raises_value_error():
-    with pytest.raises(ValueError, match='Not a valid courier id'):
-        get_issue_index('')
-    with pytest.raises(ValueError, match='Not a valid courier id'):
-        get_issue_index('0')
-    with pytest.raises(ValueError, match='not in article index'):
-        get_issue_index('000000')
-
-
-def test_get_issue_content_return_expected_values():
+def test_get_xml_issue_content_return_expected_values():
     courier_issue = CourierIssue('061468')
     assert isinstance(courier_issue.content, untangle.Element)
     assert 'MARCH 1964' in courier_issue.content.document.page[2].cdata
 
 
-def test_get_issue_content_with_invalid_id_raises_value_error():
+def test_get_xml_issue_content_with_invalid_id_raises_value_error():
     with pytest.raises(ValueError, match='Not a valid courier id'):
-        get_issue_content('0')
+        get_xml_issue_content('0')
     with pytest.raises(ValueError, match='not in article index'):
-        get_issue_content('000000')
+        get_xml_issue_content('000000')
+
+def test_get_pdf_issue_content_return_expected_values():
+    courier_issue: ExtractedIssue = get_pdf_issue_content(courier_id='012656')
+    assert isinstance(courier_issue.content, untangle.Element)
+    assert 'MARCH 1964' in courier_issue.content.document.page[2].cdata
 
 
 @pytest.mark.parametrize(
@@ -71,15 +64,22 @@ def test_page_str_returns_expected():
 
 
 def test_create_article():
-    courier_issue = CourierIssue('061468')
-    with warnings.catch_warnings():
-        warnings.simplefilter(action='ignore', category=FutureWarning)
-        index = courier_issue.index.to_dict('record')[0]
-    article = Article(index, courier_issue)
-    assert article.courier_id == '061468'
-    assert article.record_number == '61469'
-    assert 'Eleven centuries' in article.title
-    assert article.year == '1964'
+    courier_issue: CourierIssue = CourierIssue('012656')
+
+    assert courier_issue.courier_id == '012656'
+    assert courier_issue.num_articles == 5
+    assert courier_issue.num_pages == 35
+    assert courier_issue.double_pages == [18]
+
+
+    article: Article = courier_issue.get_article('61469')
+    assert article is None
+
+    article: Article = courier_issue.articles[0]
+    assert article.courier_id == '012656'
+    assert article.record_number == '15043'
+    assert 'Bronze miniatures from ancient Sardinia' in article.title
+    assert article.year == '1966'
 
 
 def test_create_courier_issue():

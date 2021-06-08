@@ -1,6 +1,6 @@
 import csv
 from pathlib import Path
-
+from typing import List, Dict
 import pytest
 
 from courier.config import get_config, get_project_root
@@ -49,3 +49,25 @@ def test_double_pages_returns_empty_list_for_excluded_issue():
 
     assert '110425' in exclusions
     assert CONFIG.double_pages.get('110425', []) == []
+
+
+def test_get_issue_article_index():
+
+    courier_id: str = '069916'
+
+    index: List[Dict] = CONFIG.get_issue_article_index(courier_id)
+
+    assert len(index) > 0
+
+
+def test_get_courier_issue_index_return_expected_values():
+    assert len(CONFIG.get_issue_article_index('061468')) == 3
+
+
+def test_get_courier_issue_index_with_invalid_id_raises_value_error():
+    with pytest.raises(ValueError, match='Not a valid courier id'):
+        CONFIG.get_issue_article_index('')
+    with pytest.raises(ValueError, match='Not a valid courier id'):
+        CONFIG.get_issue_article_index('0')
+    with pytest.raises(ValueError, match='not in article index'):
+        CONFIG.get_issue_article_index('000000')

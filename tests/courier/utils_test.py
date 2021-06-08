@@ -3,7 +3,7 @@ import sys
 import pytest
 
 from courier.config import get_config
-from courier.utils import cdata, corrected_page_number, flatten, get_courier_ids, get_illegal_chars, pdf_stats
+from courier.utils import cdata, flatten, get_courier_ids, get_illegal_chars, pdf_stats
 
 CONFIG = get_config()
 
@@ -20,20 +20,6 @@ def test_pdf_stats(monkeypatch):
     assert stats['mean'] == 8
     assert stats['median'] == 8
     assert stats['pages'] == 8
-
-
-@pytest.mark.parametrize(
-    'courier_id, page_number, expected',
-    [
-        ('012656', 10, 10),
-        ('012656', 20, 19),
-        ('069916', 25, 22),
-        ('033144', 65, 65),
-    ],
-)
-def test_corrected_page_number_returns_expected(courier_id, page_number, expected):
-    result = corrected_page_number(courier_id, page_number)
-    assert result == expected
 
 
 @pytest.mark.parametrize(

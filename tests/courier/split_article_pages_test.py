@@ -3,13 +3,27 @@ import pytest
 
 from courier.config import get_config
 from courier.overlap_check import get_overlapping_pages
-from courier.split_article_pages import create_regexp, find_title_fuzzywuzzy, find_title_regex, get_stats, save_stats
+from courier.split_article_pages import corrected_page_number, create_regexp, find_title_fuzzywuzzy, find_title_regex, get_stats, save_stats
 
 CONFIG = get_config()
 
 # TODO: test countinue_count
 # TODO: test find_title_by_fuzzymatch
 # TODO: test find_title_by_regex
+
+
+@pytest.mark.parametrize(
+    'courier_id, page_number, expected',
+    [
+        ('012656', 10, 10),
+        ('012656', 20, 19),
+        ('069916', 25, 22),
+        ('033144', 65, 65),
+    ],
+)
+def test_corrected_page_number_returns_expected(courier_id, page_number, expected):
+    result = corrected_page_number(courier_id, page_number)
+    assert result == expected
 
 
 def test_find_title_by_fuzzymatch_with_out_of_bounds_min_score_raises_value_error():
