@@ -11,7 +11,6 @@ from loguru import logger
 from courier.config import get_config
 from courier.elements import CourierIssue
 from courier.overlap_check import get_overlapping_pages
-from courier.utils import corrected_page_number
 
 CONFIG = get_config()
 
@@ -50,6 +49,8 @@ def find_uppercase_sequences(text: str, min_word_len: int = 1, min_seq_len: int 
 def uppercase_sequence_count(text: str, min_word_len: int = 1, min_seq_len: int = 1) -> int:
     return len(find_uppercase_sequences(text, min_word_len, min_seq_len))
 
+def corrected_page_number(courier_id: str, page_number: int) -> int:
+    return page_number - len([dpn for dpn in CONFIG.double_pages.get(courier_id, []) if dpn < page_number])
 
 def get_stats(
     article_index: pd.DataFrame, overlap: pd.DataFrame, match_function: Callable[[str, str], bool] = find_title_regex
