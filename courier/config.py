@@ -1,7 +1,10 @@
+from ast import Dict
 import csv
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List, Mapping
+import warnings
 
 import pandas as pd
 
@@ -19,12 +22,21 @@ def get_project_root() -> Path:
         folder, _ = os.path.split(folder)
     return Path(folder)
 
+def read_double_pages(exclusions_file: str, double_pages_file: str) -> dict:
+    with open(exclusions_file, newline='') as fp:
+        reader = csv.reader(fp, delimiter=';')
+        exclusions = [line[0] for line in reader]
+    with open(double_pages_file, 'r') as fp:
+        reader = csv.reader(fp, delimiter=';')
+        filtered_data = [line for line in reader if all(e not in line for e in exclusions)]
+        pages = {line[0]: list(map(int, line[1].split())) for line in filtered_data}
+    return pages
 
 @dataclass
 class CourierConfig:  # pylint: disable=too-many-instance-attributes
 
     # Base paths
-    base_data_dir: Path = (Path.home() / 'data/courier').resolve()
+    base_data_dir: Path = (get_project_root() / 'data/courier').resolve()
     project_root: Path = get_project_root()
 
     # Folders
@@ -32,7 +44,7 @@ class CourierConfig:  # pylint: disable=too-many-instance-attributes
     pages_dir: Path = base_data_dir / 'pages'
     xml_dir: Path = base_data_dir / 'xml'
     articles_dir: Path = base_data_dir / 'articles'
-    test_files_dir: Path = base_data_dir / 'test_files'
+    test_files_dir: Path = project_root / 'tests/fixtures/courier'
 
     # Metadata
     metadata_dir: Path = project_root / 'data/courier/metadata'
@@ -40,21 +52,18 @@ class CourierConfig:  # pylint: disable=too-many-instance-attributes
     double_pages_file: Path = metadata_dir / 'double_pages.csv'
     exclusions_file: Path = metadata_dir / 'double_pages_exclusions.csv'
     overlap_file: Path = metadata_dir / 'overlap.csv'
-    article_index: pd.DataFrame = get_article_index_from_file(metadata_file)
-
     default_template: str = 'article.xml.jinja'
+    article_index: pd.DataFrame = None
+    double_pages: Mapping[str, List[int]] = None
 
-    @property
-    def double_pages(self) -> dict:
-        with open(self.exclusions_file, newline='') as fp:
-            reader = csv.reader(fp, delimiter=';')
-            exclusions = [line[0] for line in reader]
-        with open(self.double_pages_file, 'r') as fp:
-            reader = csv.reader(fp, delimiter=';')
-            filtered_data = [line for line in reader if all(e not in line for e in exclusions)]
-            pages = {line[0]: list(map(int, line[1].split())) for line in filtered_data}
-        return pages
+    def __post_init__(self):
+        self.article_index: pd.DataFrame = get_article_index_from_file(self.metadata_file)
+        self.double_pages: Mapping[str, List[int]] = read_double_pages(self.exclusions_file, self.double_pages_file)
 
+    def get_issue_article_index(self, courier_id: str) -> List[Dict]:
+        index: pd.DataFrame = self.article_index[self.article_index['courier_id'] == courier_id]
+        article_index: List[Dict] = [ record for record in index.to_dict('records') ]
+        return article_index
 
 def get_config() -> CourierConfig:
     global _config
