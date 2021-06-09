@@ -156,7 +156,7 @@ class CourierIssue:
 
 
 class PagesFactory:
-    def create(self, issue: CourierIssue) -> CourierIssue:
+    def create(self, issue: CourierIssue) -> List[Page]:
         """Returns extracted page content"""
         num_pages = len(issue.content.pages) + len(issue.double_pages)
 
@@ -166,9 +166,7 @@ class PagesFactory:
             else Page(
                 page_number=page_number,
                 text=issue.content.pages[issue.to_pdf_page_number(page_number)].content,
-                titles=issue.content.pages[
-                    issue.to_pdf_page_number(page_number),
-                ].titles,
+                titles=issue.content.pages[issue.to_pdf_page_number(page_number)].titles,
             )
             for page_number in range(1, num_pages + 1)
         ]
