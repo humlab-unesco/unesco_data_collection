@@ -1,11 +1,11 @@
-from courier.extract.java_extractor import ExtractedIssue
 import warnings
 from pathlib import Path
 
 import pytest
 import untangle
 
-from courier.elements import Article, CourierIssue, Page, get_xml_issue_content, get_pdf_issue_content, read_xml
+from courier.elements import Article, CourierIssue, Page, get_pdf_issue_content, get_xml_issue_content, read_xml
+from courier.extract.java_extractor import ExtractedIssue
 
 # TODO: Mock
 
@@ -31,6 +31,7 @@ def test_get_xml_issue_content_with_invalid_id_raises_value_error():
         get_xml_issue_content('0')
     with pytest.raises(ValueError, match='not in article index'):
         get_xml_issue_content('000000')
+
 
 def test_get_pdf_issue_content_return_expected_values():
     courier_issue: ExtractedIssue = get_pdf_issue_content(courier_id='012656')
@@ -70,7 +71,6 @@ def test_create_article():
     assert courier_issue.num_articles == 5
     assert courier_issue.num_pages == 35
     assert courier_issue.double_pages == [18]
-
 
     article: Article = courier_issue.get_article('61469')
     assert article is None
