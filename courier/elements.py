@@ -4,7 +4,7 @@ import io
 import os
 import re
 from dataclasses import dataclass
-from typing import List, Mapping, Optional, Set, Tuple, Union
+from typing import List, Optional, Set, Tuple, Union
 
 import untangle
 
@@ -140,11 +140,12 @@ class CourierIssue:
     def __get_item__(self, index: int) -> Page:
         return self.pages[index]
 
-    def page_numbers_mapping(self) -> Mapping[int, int]:
-        total_pages = len(self.pages) + len(self.double_pages)
-        corrected_double_pages = [x + i for i, x in enumerate(self.double_pages)]
-        pages = [x for x in range(1, total_pages + 1) if x - 1 in corrected_double_pages]
-        return pages
+    # FIXME: Return correct item/type
+    # def page_numbers_mapping(self) -> Mapping[int, int]:
+    #     total_pages = len(self.pages) + len(self.double_pages)
+    #     corrected_double_pages = [x + i for i, x in enumerate(self.double_pages)]
+    #     pages = [x for x in range(1, total_pages + 1) if x - 1 in corrected_double_pages]
+    #     return pages
 
     # def find_pattern(self, pattern: str) -> List[Tuple[int, int]]:
     #     page_numbers = []
@@ -185,21 +186,19 @@ class AssignArticlesToPages:
                 article.pages.append(page)
 
     def _find_articles_on_page(self, issue: CourierIssue, page: Page) -> List[Article]:
-
-        articles = [a for a in issue.articles if page.page_number in a.page_number]
-
+        articles = [a for a in issue.articles if page.page_number in a.page_numbers]  # FIXME: Handle that a.page_numbers can be None
         return articles
 
 
 class ConsolidateArticleTexts:
-    def consolidate(self, issue: CourierIssue) -> CourierIssue:
-
+    
+    def consolidate(self, issue: CourierIssue) -> None:  # -> CourierIssue:
         for article in issue.articles:
             for page in article.pages:
                 if len(page.articles) == 1:
                     article.texts.append(page.text)
                 elif len(page.articles) > 1:
-                    text: str = self.extract_text(article, page)
+                    text: str = self.extract_text(article, page)  # NOTE: No return value for extract_text
 
     def extract_text(self, article: Article, page: Page) -> None:
         if len(page.articles) == 1:
@@ -231,6 +230,8 @@ class ConsolidateArticleTexts:
             # page_titles = page.titles
 
     def find_matching_title_position(self, article: Article, titles: List) -> Optional[int]:
+        if article.catalogue_title is None:
+            return None
         title_bow: Set[str] = set(article.catalogue_title.lower().split())
         for position, candidate_title in titles:
             candidate_title_bow: Set[str] = set(candidate_title.lower().split())
@@ -252,6 +253,8 @@ if __name__ == '__main__':
     issue = CourierIssue('012656')
     ExtractArticles().extract(issue)
     for article in issue.articles:
+        if article.catalogue_title is None:
+            continue
         filename = os.path.join('/tmp', re.sub('[^-a-zA-Z0-9_.() ]+', '', article.catalogue_title.lower()))
         with open(filename, 'w') as fp:
             fp.write('\n\n'.join(article.texts))
