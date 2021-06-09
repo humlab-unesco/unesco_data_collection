@@ -22,9 +22,9 @@ import org.apache.pdfbox.tools as pdfbox_tools  # isort: skip  # noqa: E402
 
 @dataclass
 class ExtractedPage:
-    pdf_page_number: str
+    pdf_page_number: int
     content: str
-    titles: List[Tuple[str, int]]
+    titles: List[List[Tuple[str, int]]]
 
 
 @dataclass
