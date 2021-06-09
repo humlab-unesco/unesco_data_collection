@@ -1,6 +1,7 @@
 import csv
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
+
 import pytest
 
 from courier.config import get_config, get_project_root
@@ -54,7 +55,6 @@ def test_double_pages_returns_empty_list_for_excluded_issue():
 def test_get_issue_article_index():
 
     courier_id: str = '069916'
-
     index: List[Dict] = CONFIG.get_issue_article_index(courier_id)
 
     assert len(index) > 0
@@ -64,6 +64,7 @@ def test_get_courier_issue_index_return_expected_values():
     assert len(CONFIG.get_issue_article_index('061468')) == 3
 
 
+@pytest.mark.skip(reason='Validity tests removed')
 def test_get_courier_issue_index_with_invalid_id_raises_value_error():
     with pytest.raises(ValueError, match='Not a valid courier id'):
         CONFIG.get_issue_article_index('')
