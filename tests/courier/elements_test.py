@@ -10,9 +10,7 @@ from courier.extract.java_extractor import ExtractedIssue
 
 
 def test_read_xml_removes_control_chars():
-
     expected = '\n\\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08\n\\x0b \\x0c \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f\n'
-
     content = read_xml(Path('tests/fixtures/invalid_chars.xml'))
 
     assert isinstance(content, untangle.Element)
@@ -20,9 +18,9 @@ def test_read_xml_removes_control_chars():
 
 
 def test_get_xml_issue_content_return_expected_values():
-    courier_issue = CourierIssue('061468')
-    assert isinstance(courier_issue.content, untangle.Element)
-    assert 'MARCH 1964' in courier_issue.content.document.page[2].cdata
+    content = get_xml_issue_content('061468')
+    assert isinstance(content, untangle.Element)
+    assert 'MARCH 1964' in content.document.page[2].cdata
 
 
 def test_get_xml_issue_content_with_invalid_id_raises_value_error():
@@ -143,3 +141,11 @@ def test_courier_issue_pages_when_issue_has_double_pages_returns_expected():
     pages = [p for p in courier_issue.pages]
     assert len(pages) == courier_issue.num_pages
     assert pages[8].text != pages[9].text == pages[10].text == pages[11].text != pages[12].text
+
+
+# 069916;"10 11 24"
+def test_to_pdf_page_number():
+    issue = CourierIssue('012656')
+    assert 15 == issue.to_pdf_page_number(15)
+    assert 18 == issue.to_pdf_page_number(18)
+    assert 19 == issue.to_pdf_page_number(20)

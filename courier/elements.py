@@ -24,13 +24,20 @@ def read_xml(filename: Union[str, bytes, os.PathLike]) -> untangle.Element:
         return element
 
 
+# NOTE: Needed for test discovery (WIP). Remove later if deemed deprecated.
+def get_xml_issue_content(courier_id: str) -> untangle.Element:
+    if len(courier_id) != 6:
+        raise ValueError(f'Not a valid courier id "{courier_id}')
+    if courier_id not in CONFIG.article_index.courier_id.values:
+        raise ValueError(f'{courier_id} not in article index')
+    return read_xml(list(CONFIG.xml_dir.glob(f'{courier_id}*.xml'))[0])
+
+
 def get_pdf_issue_content(courier_id: str) -> ExtractedIssue:
 
     extractor: JavaExtractor = JavaExtractor()
-
     filename: str = str(list(CONFIG.pdf_dir.glob(f'{courier_id}*.pdf'))[0])
     issue: ExtractedIssue = extractor.extract_issue(filename)
-
     return issue
 
 
@@ -89,14 +96,6 @@ class Article:
     @property
     def max_page_number(self) -> int:
         return 0 if self.page_numbers is None else max(self.page_numbers)
-
-
-# 069916;"10 11 24"
-# def test_to_pdf_page_number() -> None:
-#     issue = CourierIssue('012656')
-#     assert 15 == issue.to_pdf_page_number(15)
-#     assert 18 == issue.to_pdf_page_number(18)
-#     assert 19 == issue.to_pdf_page_number(20)
 
 
 class CourierIssue:
