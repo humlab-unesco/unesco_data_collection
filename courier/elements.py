@@ -42,6 +42,7 @@ def get_pdf_issue_content(courier_id: str) -> ExtractedIssue:
 
 
 class Page:
+    # FIXME: Make titles and articles optional
     def __init__(self, page_number: int, text: str, titles: List[Tuple[str, int]], articles: List['Article'] = None):
         self.page_number: int = page_number
         self.text: str = str(text)
