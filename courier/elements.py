@@ -2,15 +2,13 @@ import io
 import os
 import re
 from dataclasses import dataclass
-from typing import List, Mapping, Optional, Tuple, Union, Set
+from typing import List, Mapping, Optional, Set, Tuple, Union
 
 import untangle
 
 from courier.config import get_config
 from courier.extract.java_extractor import ExtractedIssue, JavaExtractor
-from courier.utils import valid_xml
-from courier.utils import split_by_idx
-
+from courier.utils import split_by_idx, valid_xml
 
 CONFIG = get_config()
 
@@ -35,7 +33,7 @@ def get_pdf_issue_content(courier_id: str) -> ExtractedIssue:
 
 
 class Page:
-    def __init__(self, page_number: int, text: str, titles: List[Tuple(str, int)], articles: List["Article"]=None):
+    def __init__(self, page_number: int, text: str, titles: List[Tuple(str, int)], articles: List["Article"] = None):
         self.page_number: int = page_number
         self.text: str = str(text)
         self.titles: List[Tuple[str, int]] = titles
@@ -48,8 +46,10 @@ class Page:
         if not self.titles:
             assert len(self.articles) == 1
             return [self.text]
-        segments: List[str] = split_by_idx(self.text, [title_info[1] - len(title_info[0]) for title_info in self.titles])
-        #titled_text = ''.join(list(roundrobin(parts, [f'\n[___{title[0]}___]\n' for title in titles])))
+        segments: List[str] = split_by_idx(
+            self.text, [title_info[1] - len(title_info[0]) for title_info in self.titles]
+        )
+        # titled_text = ''.join(list(roundrobin(parts, [f'\n[___{title[0]}___]\n' for title in titles])))
         return segments
 
 
@@ -60,13 +60,14 @@ class DoubleSpreadRightPage(Page):
 
 
 class Article:
-    def __init__(self, 
+    def __init__(
+        self,
         courier_issue: 'CourierIssue',
-        courier_id: str=None,
-        year: str=None,
-        record_number: str=None,
-        pages: List[int]=None,
-        catalogue_title: str=None,
+        courier_id: str = None,
+        year: str = None,
+        record_number: str = None,
+        pages: List[int] = None,
+        catalogue_title: str = None,
     ):
         self.courier_issue = courier_issue
         self.courier_id: str = courier_id
@@ -84,6 +85,7 @@ class Article:
     @property
     def max_page_number(self) -> int:
         return max(self.page_numbers)
+
 
 # 069916;"10 11 24"
 # def test_to_pdf_page_number() -> None:
@@ -120,7 +122,9 @@ class CourierIssue:
         return next((x for x in self.articles if x.record_number == record_number), None)
 
     def _get_articles(self) -> List[Article]:
-        articles: List[Article] = [Article(courier_issue=self, **items) for items in CONFIG.get_issue_article_index(self.courier_id)]
+        articles: List[Article] = [
+            Article(courier_issue=self, **items) for items in CONFIG.get_issue_article_index(self.courier_id)
+        ]
         return articles
 
     @property
@@ -147,8 +151,8 @@ class CourierIssue:
     #             page_numbers.append((i, page['number']))
     #     return page_numbers
 
-class PagesFactory:
 
+class PagesFactory:
     def create(self, issue: CourierIssue) -> CourierIssue:
         """Returns extracted page content"""
         num_pages = len(issue.content.pages) + len(issue.double_pages)
@@ -167,8 +171,8 @@ class PagesFactory:
         ]
         return pages
 
-class AssignArticlesToPages:
 
+class AssignArticlesToPages:
     def assign(self, issue: CourierIssue) -> None:
         for page in issue.pages:
             if isinstance(page, DoubleSpreadRightPage):
@@ -180,12 +184,12 @@ class AssignArticlesToPages:
 
     def _find_articles_on_page(self, issue: CourierIssue, page: Page) -> List[Article]:
 
-        articles = [ a for a in issue.articles if page.page_number in a.page_number ]
+        articles = [a for a in issue.articles if page.page_number in a.page_number]
 
         return articles
 
-class ConsolidateArticleTexts:
 
+class ConsolidateArticleTexts:
     def consolidate(self, issue: CourierIssue) -> CourierIssue:
 
         for article in issue.articles:
@@ -206,11 +210,11 @@ class ConsolidateArticleTexts:
             """Find break position and which part belongs to which article"""
             # Rule #1: If max(A1.page_number) == min(A2.page_numbers) ==> article A1 first on page
             # Rule #2: If min(A.page_number) == page then title is on page
-            #A1 = [1,2,3]
-            #A2 = [3,4,5]
+            # A1 = [1,2,3]
+            # A2 = [3,4,5]
 
             A1: Article = article
-            A2: Article = page.articles[1] if page.articles[1]  is not article else page.articles[0] 
+            A2: Article = page.articles[1] if page.articles[1] is not article else page.articles[0]
 
             if A1.min_page_number < page.page_number and A2.min_page_number == page.page_number:
                 """A1 ligger först på sidan: => Hitta A2's titel"""
@@ -237,7 +241,6 @@ class ConsolidateArticleTexts:
 
 
 class ExtractArticles:
-
     def extract(issue: CourierIssue) -> CourierIssue:
 
         AssignArticlesToPages().assign(issue)
@@ -245,15 +248,17 @@ class ExtractArticles:
 
         return issue
 
+
 if __name__ == '__main__':
     import re
+
     issue = CourierIssue('012656')
     ExtractArticles().extract()
     for article in issue.articles:
         filename = os.path.join('/tmp', re.sub('[^-a-zA-Z0-9_.() ]+', '', article.catalogue_title.lower()))
         with open(filename, 'w') as fp:
             fp.write('\n\n'.join(article.texts))
-            
+
 # courier_id;year;record_number;pages;catalogue_title
 # 074873;1974;50290;"[4, 5]";"1 + 1 = 3: every day over 200,000 more mouths to feed"
 # 064696;1960;64362;"[6, 7]";"1,000 million lives in danger"

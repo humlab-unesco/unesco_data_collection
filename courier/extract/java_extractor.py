@@ -26,6 +26,7 @@ class ExtractedPage:
     content: str
     titles: List[Tuple[str, int]]
 
+
 @dataclass
 class ExtractedIssue:
     """Container for extracted raw text, and titles (text and positiopn) for a single issue.
@@ -39,6 +40,7 @@ class ExtractedIssue:
     @property
     def page_count(self) -> int:
         return len(self.pages or [])
+
 
 # TODO: Use this in `pdfbox_extractor` or new `custom_pdfbox_extractor`
 # TODO: Add parameters `titleFontSizeInPt`, `minTitleLengthInCharacters`
@@ -59,7 +61,7 @@ class JavaExtractor:
             )
             pages.append(page)
 
-        issue: ExtractedIssue = ExtractedIssue( pages=pages )
+        issue: ExtractedIssue = ExtractedIssue(pages=pages)
         return issue
 
 
@@ -70,4 +72,3 @@ class JavaExtractor:
 #     for i, x in enumerate(content, start=1):
 #         fp.write(f'---------- Page {i} ----------\n{x}\n')
 # len(content)
-x
