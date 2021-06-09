@@ -251,6 +251,9 @@ category = "main"
 optional = false
 python-versions = "*"
 
+[package.dependencies]
+python-levenshtein = {version = ">=0.12", optional = true, markers = "extra == \"speedup\""}
+
 [package.extras]
 speedup = ["python-levenshtein (>=0.12)"]
 
@@ -388,11 +391,15 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "jpype1"
-version = "1.2.1"
+version = "1.3.0"
 description = "A Python to Java bridge."
 category = "main"
 optional = false
 python-versions = "*"
+
+[package.extras]
+docs = ["readthedocs-sphinx-ext", "sphinx", "sphinx-rtd-theme"]
+tests = ["pytest"]
 
 [[package]]
 name = "jupyter-client"
@@ -841,6 +848,14 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 six = ">=1.5"
 
 [[package]]
+name = "python-levenshtein"
+version = "0.12.2"
+description = "Python extension for computing string edit distances and similarities."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "python-pdfbox"
 version = "0.1.8.1"
 description = "Python interface to Apache PDFBox command-line tools."
@@ -1062,8 +1077,8 @@ python-versions = "*"
 
 [metadata]
 lock-version = "1.1"
-python-versions = "3.8.5"
-content-hash = "b2979714c157f2ff7493879fd733971b1a58cb3984285e506880a07b4e74ec84"
+python-versions = "^3.8"
+content-hash = "a69d56b2bf0cbefbfafddc1701b7f7556183e81443a179cca5fc8dbce84c9523"
 
 [metadata.files]
 appdirs = [
@@ -1299,35 +1314,25 @@ joblib = [
     {file = "joblib-1.0.1.tar.gz", hash = "sha256:9c17567692206d2f3fb9ecf5e991084254fe631665c450b443761c4186a613f7"},
 ]
 jpype1 = [
-    {file = "JPype1-1.2.1-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:13225978f29ba133627b34fac76829a0af7cb734bcf61fe2660a7f1284adb962"},
-    {file = "JPype1-1.2.1-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:e673f45b3099b5f96a2f6e1ae0fbcd801bbed605418f4112d8cbd9ea4dfaae7f"},
-    {file = "JPype1-1.2.1-cp35-cp35m-manylinux2010_x86_64.whl", hash = "sha256:d217402b59f83acc9a09014073ced70f1bf5e2073fbf40ecb1dfeea86d68b433"},
-    {file = "JPype1-1.2.1-cp35-cp35m-manylinux2014_aarch64.whl", hash = "sha256:592140f1bd00202f6c5a5508b2fb3c7671bd00aaa56b246a31dd317972d85e1a"},
-    {file = "JPype1-1.2.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:057e84c7e4aac4ee36b6d5117a23eb9f8741d25dd9051075c8beef995bc76a3d"},
-    {file = "JPype1-1.2.1-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:4f1bfbe2464572f61cd23859f070c953c991753829d49a3c2436a630b7a95747"},
-    {file = "JPype1-1.2.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:96cd4c5dcfe8e5fb746f1cc8cd0abcff12f6f443b626372493374d609a7c24cd"},
-    {file = "JPype1-1.2.1-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:b411a387d25481648694ab78af26b161b2a731ce0e540787f0a0db35948ae30d"},
-    {file = "JPype1-1.2.1-cp36-cp36m-manylinux2014_aarch64.whl", hash = "sha256:36a33b3bbece6fdfac5eefba212067b8579bc250fbf3679ba1be954b50ff1322"},
-    {file = "JPype1-1.2.1-cp36-cp36m-win_amd64.whl", hash = "sha256:5c0db380523bb33613266e20bf022c7796d3c664823bc049ec94f3da009c0b0f"},
-    {file = "JPype1-1.2.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:3f2c954abd89da855b7774bd9ad0fb9e2ef94f772cc25d0fac6fc8d91a3bf6dd"},
-    {file = "JPype1-1.2.1-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:456d1d5940336c4872388069fe3455d1127ac529f83f1470a8801f7b470cd1b2"},
-    {file = "JPype1-1.2.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:16fcb2bcdf58868356c9a11ce793d301ff994df89af76331aa7c11837cc59ee9"},
-    {file = "JPype1-1.2.1-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:da0daad69e4676c166e953161fba70e2b5a3184fc4d5f9df47aa9b2ca1dc4fdc"},
-    {file = "JPype1-1.2.1-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:910e006d840474376edef891bc5c4f5ceb26f8d00066e4fca49ad1cc9bb0deb5"},
-    {file = "JPype1-1.2.1-cp37-cp37m-win_amd64.whl", hash = "sha256:ead6858694122110f9dccc6e4d9d54780e2f80814bf98431f937b811485fd5e6"},
-    {file = "JPype1-1.2.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:fa4fc54d6ad6a5714b7c0e441f869933db95c0a3dc66b5869b48c93660992917"},
-    {file = "JPype1-1.2.1-cp38-cp38-manylinux1_i686.whl", hash = "sha256:8130c704cece728fa590443ae8fb33cdfb6ac5ab4d9acb5d132d7b2ab4e92461"},
-    {file = "JPype1-1.2.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:f2f395d0d60852a0b39ce91d8a0d51c2fc5d199e800762a748e09ffbcbf5e0e5"},
-    {file = "JPype1-1.2.1-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:3d30c860f84b1b7b36b361bce93e897b80c85a080a39bb86901010be50a61556"},
-    {file = "JPype1-1.2.1-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:8a6a4dc63f967b22876424ad9b80f6ab87488da27918ce6fc2cf5e0016eb0218"},
-    {file = "JPype1-1.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:11c76ba44647861d518ece04e452ea0a2ba523f4e13732d4d8bb4595e33b906c"},
-    {file = "JPype1-1.2.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:9bf99f62559b4016038c08ffc97f024d07381c98e268d797c8219e976ad5851b"},
-    {file = "JPype1-1.2.1-cp39-cp39-manylinux1_i686.whl", hash = "sha256:1fcc25bcbd57d2ee73c6d888183f576f29cd38707216100e023f23e482804515"},
-    {file = "JPype1-1.2.1-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:65475399c3a115f565907f35b2694b3d3a1e9ad83e77c9142f7b2e46fbb24475"},
-    {file = "JPype1-1.2.1-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:383d6ad4b58c8b7afcf70075af0321a82c686fa8faa792fc6e954494d869a054"},
-    {file = "JPype1-1.2.1-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:fe4b09f36b15a4030ef8045b9f3f6882b1546dfb379da8351a82c0969acf8bde"},
-    {file = "JPype1-1.2.1-cp39-cp39-win_amd64.whl", hash = "sha256:fcae8ca7ce9ca24f9253964ff3dbd6c66d18d74d84dd2fb67ce529a07b4fd515"},
-    {file = "JPype1-1.2.1.tar.gz", hash = "sha256:f210646127d24be73cfc6d807e2cda1c6b2ab39b7a293008e8b46367af6f2204"},
+    {file = "JPype1-1.3.0-cp35-cp35m-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:1eb690b3757d8ff3f853941c73b6f9caa2b3f7851ec9a105e0388558bf726690"},
+    {file = "JPype1-1.3.0-cp35-cp35m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:7bb61de43e4b7f83a9a0d84e553939912c758430d13d0667befa9a5c935e955e"},
+    {file = "JPype1-1.3.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:7b674d1888a3433a22ef0c8c67e8bb137252de7c358db2cc85af3565de3af595"},
+    {file = "JPype1-1.3.0-cp36-cp36m-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:f4d65ac9c13d785da3555fbc0f710ea62c716036c265a3cc8f8d8d36b9aaa1c7"},
+    {file = "JPype1-1.3.0-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:d89ef97478da724728fc946e12256f5a62c5cb0d7107aa30256ffb4413754eea"},
+    {file = "JPype1-1.3.0-cp36-cp36m-win_amd64.whl", hash = "sha256:f356f10e9f77a77466557076555eacde342b558905143c6e49c84e8e72712d2c"},
+    {file = "JPype1-1.3.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:82d83b0e7baadbd876f498c5ba2356f0a87c0372e88e89bbb3c3c09044e80921"},
+    {file = "JPype1-1.3.0-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:487843f84dbb3df59d63bb95583320edcf33cc112856c3d28c95c907c7535075"},
+    {file = "JPype1-1.3.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:e1f54084018deeab84aea349963335b2883a7ac91173fe681ba63d3ff09eb68c"},
+    {file = "JPype1-1.3.0-cp37-cp37m-win_amd64.whl", hash = "sha256:6b74385f38968dfbe01a0548c6066bb3072e5a2f2b082a1beeca0935abb789ba"},
+    {file = "JPype1-1.3.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:b6171cabc41cda585f80ad84c6173cb1ad874c83e6810b100668bc867fa13046"},
+    {file = "JPype1-1.3.0-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:fa1cf484a1e8c86839791f8667dfae8be3f7510c3fa3de6674608f29b4629554"},
+    {file = "JPype1-1.3.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:5c39c3efce8cc18147f8269ae5cd7ed4a073f5ef00e78dbf17305fd6330c50e3"},
+    {file = "JPype1-1.3.0-cp38-cp38-win_amd64.whl", hash = "sha256:a10f52623b377894dda664228baa0a64c7d4948973b91229238c9a5fbf560139"},
+    {file = "JPype1-1.3.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:6d328e3ec0c626dd4272d4c6dbfaa0b66293c72dd1786adfb51bec33ee2f3fd3"},
+    {file = "JPype1-1.3.0-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:953fdb406999d68bee8f48f809a3906df9509dca055183b7af0bed62515db29a"},
+    {file = "JPype1-1.3.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:43583158b5c0c606b87b32ae3175d3d7f24eadefd6d29837f76f295d656a9eac"},
+    {file = "JPype1-1.3.0-cp39-cp39-win_amd64.whl", hash = "sha256:748bee8759e4a1261284e4f48eab475abe66a2eb4c3f7f3967c71276efe6abe5"},
+    {file = "JPype1-1.3.0.tar.gz", hash = "sha256:4fc27dba89750cb0c9d692466341ce60c0fe86a16051091cb5347a37cf884151"},
 ]
 jupyter-client = [
     {file = "jupyter_client-6.2.0-py3-none-any.whl", hash = "sha256:9715152067e3f7ea3b56f341c9a0f9715c8c7cc316ee0eb13c3c84f5ca0065f5"},
@@ -1699,6 +1704,9 @@ pytest-cov = [
 python-dateutil = [
     {file = "python-dateutil-2.8.1.tar.gz", hash = "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c"},
     {file = "python_dateutil-2.8.1-py2.py3-none-any.whl", hash = "sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a"},
+]
+python-levenshtein = [
+    {file = "python-Levenshtein-0.12.2.tar.gz", hash = "sha256:dc2395fbd148a1ab31090dd113c366695934b9e85fe5a4b2a032745efd0346f6"},
 ]
 python-pdfbox = [
     {file = "python-pdfbox-0.1.8.1.tar.gz", hash = "sha256:93c681c76ea875faf2283caa52dbd4b0974fb16f16402f548fae7366932e6bf8"},

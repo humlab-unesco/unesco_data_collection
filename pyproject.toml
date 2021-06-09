@@ -7,10 +7,11 @@ readme = "README.md"
 packages = [{include = "unesco_data_collection"}]
 
 [tool.poetry.dependencies]
+python = "^3.8"
 argh = "^0.26.2"
 bs4 = "^0.0.1"
 fuzzysearch = "^0.7.3"
-fuzzywuzzy = "^0.18.0"
+fuzzywuzzy = {extras = ["speedup"], version = "^0.18.0"}
 Jinja2 = "^3.0.1"
 JPype1 = "^1.2.1"
 loguru = "^0.5.3"
@@ -20,7 +21,6 @@ pandas = "^1.2.4"
 pdf2image = "^1.15.1"
 pdfplumber = "^0.5.28"
 pytesseract = "^0.3.7"
-python = "3.8.5"
 python-pdfbox = "^0.1.8"
 requests = "^2.25.1"
 tqdm = "^4.61.0"
