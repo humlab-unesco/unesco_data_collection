@@ -203,10 +203,8 @@ class ConsolidateArticleTexts:
                 elif len(page.articles) > 1:
                     text: str = self.extract_text(article, page)
 
-    def extract_text(self, article: Article, page: Page):
-
+    def extract_text(self, article: Article, page: Page) -> None:
         if len(page.articles) == 1:
-
             article.texts.append(page.text)
 
         elif len(page.articles) == 2:
