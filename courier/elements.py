@@ -1,14 +1,13 @@
-from courier.extract.java_extractor import ExtractedIssue, JavaExtractor
 import io
 import os
 import re
-import warnings
 from dataclasses import dataclass
 from typing import Iterator, List, Mapping, Optional, Tuple, Union
 
 import untangle
 
 from courier.config import get_config
+from courier.extract.java_extractor import ExtractedIssue, JavaExtractor
 from courier.utils import valid_xml
 
 CONFIG = get_config()
@@ -31,14 +30,16 @@ def get_xml_issue_content(courier_id: str) -> untangle.Element:
         raise ValueError(f'{courier_id} not in article index')
     return read_xml(list(CONFIG.xml_dir.glob(f'{courier_id}*.xml'))[0])
 
+
 def get_pdf_issue_content(courier_id: str) -> ExtractedIssue:
 
     extractor: JavaExtractor = JavaExtractor()
 
     filename: str = str(list(CONFIG.pdf_dir.glob(f'{courier_id}*.pdf'))[0])
-    issue: ExtractedIssue =  extractor.extract_issue(filename)
+    issue: ExtractedIssue = extractor.extract_issue(filename)
 
     return issue
+
 
 @dataclass(order=True, frozen=True)
 class Page:
@@ -94,13 +95,13 @@ class CourierIssue:
         self.content: ExtractedIssue = get_pdf_issue_content(courier_id)
 
         self.drifted_double_pages = CONFIG.double_pages.get(courier_id, [])
-        self.double_pages = [ x + i for i, x in enumerate(self.double_pages)]
+        self.double_pages = [x + i for i, x in enumerate(self.double_pages)]
 
     def get_article(self, record_number: str) -> Optional[Article]:
         return next((x for x in self.articles if x.record_number == record_number), None)
 
-    def get_articles(self):
-        articles: List[Article] = [ Article(x, self) for x in CONFIG.get_issue_article_index(self.courier_id) ]
+    def get_articles(self) -> List[Article]:
+        articles: List[Article] = [Article(x, self) for x in CONFIG.get_issue_article_index(self.courier_id)]
         return articles
 
     @property
@@ -119,7 +120,7 @@ class CourierIssue:
 
     def get_page(self, page_number: int) -> Page:
 
-        right_double_pages = [ x + i + 1 for i, x in enumerate(self.double_pages)]
+        right_double_pages = [x + i + 1 for i, x in enumerate(self.double_pages)]
         if page_number in right_double_pages:
             return None
 
@@ -129,8 +130,8 @@ class CourierIssue:
 
     def page_numbers_mapping(self) -> Mapping[int, int]:
         total_pages = self.num_pages + len(self.double_pages)
-        corrected_double_pages = [ x + i for i, x in enumerate(self.double_pages)]
-        pages = [ x for x in range(1, total_pages + 1) if x - 1 in corrected_double_pages ]
+        corrected_double_pages = [x + i for i, x in enumerate(self.double_pages)]
+        pages = [x for x in range(1, total_pages + 1) if x - 1 in corrected_double_pages]
         return pages
 
     def find_pattern(self, pattern: str) -> List[Tuple[int, int]]:
