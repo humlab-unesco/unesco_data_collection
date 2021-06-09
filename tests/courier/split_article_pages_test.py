@@ -3,7 +3,14 @@ import pytest
 
 from courier.config import get_config
 from courier.overlap_check import get_overlapping_pages
-from courier.split_article_pages import corrected_page_number, create_regexp, find_title_fuzzywuzzy, find_title_regex, get_stats, save_stats
+from courier.split_article_pages import (
+    corrected_page_number,
+    create_regexp,
+    find_title_fuzzywuzzy,
+    find_title_regex,
+    get_stats,
+    save_stats,
+)
 
 CONFIG = get_config()
 
