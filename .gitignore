@@ -129,7 +129,9 @@ dmypy.json
 .pyre/
 
 # own settings
-.vscode/
+!.vscode/
+.vscode/*
+!.vscode/settings.json
 
 # backup files
 *.bak
