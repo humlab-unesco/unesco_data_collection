@@ -55,9 +55,9 @@ class Page:
         if not self.titles:
             assert len(self.articles) == 1
             return [self.text]
-        segments: List[str] = split_by_idx(
+        segments: List[str] = list(split_by_idx(
             self.text, [title_info[1] - len(title_info[0]) for title_info in self.titles]
-        )
+        ))
         # titled_text = ''.join(list(roundrobin(parts, [f'\n[___{title[0]}___]\n' for title in titles])))
         return segments
 
