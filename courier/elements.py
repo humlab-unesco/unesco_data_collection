@@ -1,3 +1,5 @@
+# pylint: disable=redefined-outer-name
+
 import io
 import os
 import re
@@ -33,7 +35,7 @@ def get_pdf_issue_content(courier_id: str) -> ExtractedIssue:
 
 
 class Page:
-    def __init__(self, page_number: int, text: str, titles: List[Tuple(str, int)], articles: List["Article"] = None):
+    def __init__(self, page_number: int, text: str, titles: List[Tuple[str, int]], articles: List['Article'] = None):
         self.page_number: int = page_number
         self.text: str = str(text)
         self.titles: List[Tuple[str, int]] = titles
@@ -70,21 +72,23 @@ class Article:
         catalogue_title: str = None,
     ):
         self.courier_issue = courier_issue
-        self.courier_id: str = courier_id
-        self.year: str = year
-        self.record_number: str = record_number
-        self.page_numbers: List[int] = pages  # TODO: Change name in article_index
-        self.catalogue_title: str = catalogue_title
+        self.courier_id: Optional[str] = courier_id
+        self.year: Optional[str] = year
+        self.record_number: Optional[str] = record_number
+        self.page_numbers: Optional[List[int]] = pages  # TODO: Change name in article_index
+        self.catalogue_title: Optional[str] = catalogue_title
         self.pages: List[Page] = []
         self.texts: List[str] = []
 
+    # FIXME: Check this
     @property
     def min_page_number(self) -> int:
-        return min(self.page_numbers)
+        return 0 if self.page_numbers is None else min(self.page_numbers)
 
+    # FIXME: Check this
     @property
     def max_page_number(self) -> int:
-        return max(self.page_numbers)
+        return 0 if self.page_numbers is None else max(self.page_numbers)
 
 
 # 069916;"10 11 24"
@@ -194,7 +198,6 @@ class ConsolidateArticleTexts:
 
         for article in issue.articles:
             for page in article.pages:
-
                 if len(page.articles) == 1:
                     article.texts.append(page.text)
                 elif len(page.articles) > 1:
@@ -231,29 +234,27 @@ class ConsolidateArticleTexts:
             # text: str = self.extract_article_text(article, page)
             # page_titles = page.titles
 
-    def find_matching_title_position(self, article: Article, titles: List) -> int:
+    def find_matching_title_position(self, article: Article, titles: List) -> Optional[int]:
         title_bow: Set[str] = set(article.catalogue_title.lower().split())
         for position, candidate_title in titles:
             candidate_title_bow: Set[str] = set(candidate_title.lower().split())
             common_words = title_bow.intersection(candidate_title_bow)
             if len(common_words) >= 2 and len(common_words) >= len(title_bow) / 2:
                 return position
+        return None
 
 
 class ExtractArticles:
-    def extract(issue: CourierIssue) -> CourierIssue:
-
+    def extract(self, issue: CourierIssue) -> CourierIssue:
         AssignArticlesToPages().assign(issue)
         ConsolidateArticleTexts().consolidate(issue)
-
         return issue
 
 
 if __name__ == '__main__':
-    import re
 
     issue = CourierIssue('012656')
-    ExtractArticles().extract()
+    ExtractArticles().extract(issue)
     for article in issue.articles:
         filename = os.path.join('/tmp', re.sub('[^-a-zA-Z0-9_.() ]+', '', article.catalogue_title.lower()))
         with open(filename, 'w') as fp:
