@@ -1,4 +1,3 @@
-import csv
 import functools
 import operator
 import re
@@ -85,6 +84,7 @@ def get_courier_ids() -> List[str]:
     issues = sorted(list(Path(CONFIG.pdf_dir).glob('*.pdf')))
     return [x.stem for x in issues]
 
+
 def split_by_idx(S: str, list_of_indices: List[int]) -> Iterator[str]:
     """See: https://stackoverflow.com/a/57342460"""
     left, right = 0, list_of_indices[0]
@@ -94,6 +94,7 @@ def split_by_idx(S: str, list_of_indices: List[int]) -> Iterator[str]:
         yield S[left:right]
         left = right
     yield S[left:]
+
 
 if __name__ == '__main__':
     pass
