@@ -24,6 +24,7 @@ import org.apache.pdfbox.tools as pdfbox_tools  # isort: skip  # noqa: E402
 class ExtractedPage:
     pdf_page_number: int
     content: str
+    # FIXME: #31 Change titles to other type or change logic that depends on it
     titles: List[List[Tuple[str, int]]]
 
 

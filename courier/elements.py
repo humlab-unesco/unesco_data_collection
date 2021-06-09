@@ -166,6 +166,7 @@ class PagesFactory:
             else Page(
                 page_number=page_number,
                 text=issue.content.pages[issue.to_pdf_page_number(page_number)].content,
+                # FIXME: #31 Change titles to other type or change logic that depends on it
                 titles=issue.content.pages[issue.to_pdf_page_number(page_number)].titles,
             )
             for page_number in range(1, num_pages + 1)
