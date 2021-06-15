@@ -38,6 +38,7 @@ class ExtractedIssue:
 
     pages: List[ExtractedPage]
 
+    # TODO: override __len__ instead?
     @property
     def page_count(self) -> int:
         return len(self.pages or [])
