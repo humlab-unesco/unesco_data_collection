@@ -275,25 +275,26 @@ class IssueStatistics:
     #   expected pages
     #   assigned pages
     # all pages
-    # number of pages in issue
-    # number of article pages in issue according to index
-    # number of pages in issue assigned to an article
     issue: CourierIssue
 
     @property
     def total_pages(self) -> int:
+        """Number of pages in issue"""
         return len(self.issue)
 
     @property
     def assigned_pages(self) -> int:
+        """Number of pages in issue assigned to an article"""
         return len(self.issue.get_assigned_pages())
 
     @property
     def expected_article_pages(self) -> int:
+        """Number of article pages in issue according to index"""
         return len(self.issue.get_article_pages())
 
     @property
     def number_of_articles(self) -> int:
+        """Number of articles in issue"""
         return self.issue.num_articles
 
 
@@ -314,7 +315,7 @@ def export_articles(courier_id: str) -> None:
     ExtractArticles.extract(issue)
     issue_statistics = ExtractArticles.statistics(issue)
     print(
-        f'assigned {issue_statistics.assigned_pages} pages out of {issue_statistics.expected_article_pages} ({issue_statistics.total_pages}) {100*issue_statistics.assigned_pages/issue_statistics.expected_article_pages}'
+        f'Courier ID: {courier_id}. Total pages: {issue_statistics.total_pages}. Assigned {issue_statistics.assigned_pages} of {issue_statistics.expected_article_pages} pages ({100*issue_statistics.assigned_pages/issue_statistics.expected_article_pages:.2f}%)'
     )
 
     for article in issue.articles:
@@ -329,10 +330,4 @@ def export_articles(courier_id: str) -> None:
 
 
 if __name__ == '__main__':
-
     export_articles('012656')
-
-
-# courier_id;year;record_number;pages;catalogue_title
-# 074873;1974;50290;"[4, 5]";"1 + 1 = 3: every day over 200,000 more mouths to feed"
-# 064696;1960;64362;"[6, 7]";"1,000 million lives in danger"
