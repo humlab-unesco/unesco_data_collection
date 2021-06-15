@@ -4,13 +4,14 @@ import io
 import os
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional, Set, Tuple, Union
 
 import untangle
 
 from courier.config import get_config
 from courier.extract.java_extractor import ExtractedIssue, ExtractedPage, JavaExtractor
-from courier.utils import flatten, split_by_idx, valid_xml
+from courier.utils import flatten, get_courier_ids, split_by_idx, valid_xml
 
 CONFIG = get_config()
 
@@ -260,9 +261,9 @@ class ConsolidateArticleTexts:
     def find_matching_title_position(self, article: Article, titles: List) -> Optional[int]:
         if article.catalogue_title is None:
             return None
-        title_bow: Set[str] = set(article.catalogue_title.lower().split())
+        title_bow: Set[str] = set(str(article.catalogue_title).lower().split())
         for position, candidate_title in titles:
-            candidate_title_bow: Set[str] = set(candidate_title.lower().split())
+            candidate_title_bow: Set[str] = set(str(candidate_title).lower().split())
             common_words = title_bow.intersection(candidate_title_bow)
             if len(common_words) >= 2 and len(common_words) >= len(title_bow) / 2:
                 return position
@@ -310,24 +311,36 @@ class ExtractArticles:
         return IssueStatistics(issue)
 
 
-def export_articles(courier_id: str) -> None:
+def export_articles(
+    courier_id: str,
+    export_folder: Union[str, os.PathLike] = CONFIG.articles_dir / 'exported',
+) -> None:
+
     issue = CourierIssue(courier_id)
     ExtractArticles.extract(issue)
     issue_statistics = ExtractArticles.statistics(issue)
+
+    # TODO: Move to method in IssueStatistics
     print(
         f'Courier ID: {courier_id}. Total pages: {issue_statistics.total_pages}. Assigned {issue_statistics.assigned_pages} of {issue_statistics.expected_article_pages} pages ({100*issue_statistics.assigned_pages/issue_statistics.expected_article_pages:.2f}%)'
     )
 
+    Path(export_folder).mkdir(parents=True, exist_ok=True)
+
     for article in issue.articles:
         if article.catalogue_title is None:
             continue
-        filename = os.path.join(
-            CONFIG.project_root / 'tests/output',
-            courier_id + '_' + re.sub('[^-a-zA-Z0-9_.() ]+', '', article.catalogue_title.lower()),
-        )
-        with open(filename, 'w') as fp:
+        safe_title = re.sub(r'[^\w]+', '_', str(article.catalogue_title).lower())
+        file = Path(export_folder) / f'{article.courier_id}_{article.record_number}_{safe_title}.txt'
+        with open(file, 'w') as fp:
             fp.write(article.get_text())
 
 
 if __name__ == '__main__':
-    export_articles('012656')
+    courier_ids = [x[:6] for x in get_courier_ids()]
+    for courier_id in courier_ids:
+        if courier_id not in CONFIG.article_index.courier_id.values:
+            print(f'{courier_id} not in article index')
+            continue
+        export_articles(courier_id)
+
