@@ -24,8 +24,8 @@ import org.apache.pdfbox.tools as pdfbox_tools  # isort: skip  # noqa: E402
 class ExtractedPage:
     pdf_page_number: int
     content: str
-    # FIXME: #31 Change titles to other type or change logic that depends on it
-    titles: List[List[Tuple[str, int]]]
+    # NOTE: titles optional?
+    titles: List[Tuple[str, int]]
 
 
 @dataclass
@@ -50,6 +50,7 @@ class JavaExtractor:
         self.extractor = pdfbox_tools.PDFCourier2Text(5.5, 8)
 
     def extract_issue(self, filename: Union[str, os.PathLike]) -> ExtractedIssue:
+        filename = str(filename)
         pages = []
         for pdf_page_number, content in enumerate(self.extractor.extractText(filename), start=1):
             titles = [
@@ -58,7 +59,7 @@ class JavaExtractor:
             page: ExtractedPage = ExtractedPage(
                 pdf_page_number=pdf_page_number,
                 content=content,
-                titles=titles,
+                titles=titles[pdf_page_number - 1],
             )
             pages.append(page)
 
