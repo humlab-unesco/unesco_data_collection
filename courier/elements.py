@@ -10,7 +10,7 @@ import untangle
 
 from courier.config import get_config
 from courier.extract.java_extractor import ExtractedIssue, ExtractedPage, JavaExtractor
-from courier.utils import split_by_idx, valid_xml
+from courier.utils import flatten, split_by_idx, valid_xml
 
 CONFIG = get_config()
 
@@ -76,7 +76,7 @@ class Page:
         return segments
 
 
-@dataclass(order=True, frozen=True)
+@dataclass
 class DoubleSpreadRightPage(Page):
     def __init__(self, page_number: int):
         super().__init__(page_number=page_number, text='', titles=[])
@@ -99,7 +99,7 @@ class Article:
         self.page_numbers: Optional[List[int]] = pages  # TODO: Change name in article_index
         self.catalogue_title: Optional[str] = catalogue_title
         self.pages: List[Page] = []
-        self.texts: List[str] = []
+        self.texts: List[Tuple[int, str]] = []
 
     # FIXME: Check this
     @property
@@ -110,6 +110,15 @@ class Article:
     @property
     def max_page_number(self) -> int:
         return 0 if self.page_numbers is None else max(self.page_numbers)
+
+    def get_text(self) -> str:
+        text: str = ''
+        for page_number, page_text in self.texts:
+            text += f'\n####\n#### PAGE NUMBER {page_number}\n####\n####\n{page_text}\n####'
+        return text
+
+    def get_assigned_pages(self) -> Set[int]:
+        return {p[0] for p in self.texts}
 
 
 class CourierIssue:
@@ -154,6 +163,12 @@ class CourierIssue:
     def __getitem__(self, index: int) -> Page:
         return self.pages[index]
 
+    def get_assigned_pages(self) -> Set[int]:
+        return set.union(*[p.get_assigned_pages() for p in self.articles])
+
+    def get_article_pages(self) -> Set[int]:
+        return set(flatten([a.page_numbers for a in self.articles]))
+
     # FIXME: Return correct item/type
     # def page_numbers_mapping(self) -> Mapping[int, int]:
     #     total_pages = len(self.pages) + len(self.double_pages)
@@ -183,7 +198,7 @@ class PagesFactory:
                 text=issue.content.pages[issue.to_pdf_page_number(page_number)].content,
                 titles=issue.content.pages[issue.to_pdf_page_number(page_number)].titles,
             )
-            for page_number in range(1, num_pages + 1)
+            for page_number in range(1, num_pages)
         ]
         return pages
 
@@ -206,17 +221,14 @@ class AssignArticlesToPages:
 
 
 class ConsolidateArticleTexts:
-    def consolidate(self, issue: CourierIssue) -> None:  # -> CourierIssue:
+    def consolidate(self, issue: CourierIssue) -> None:
         for article in issue.articles:
             for page in article.pages:
-                if len(page.articles) == 1:
-                    article.texts.append(page.text)
-                elif len(page.articles) > 1:
-                    text: str = self.extract_text(article, page)  # NOTE: No return value for extract_text
+                self.assign_segments_to_articles(article, page)
 
-    def extract_text(self, article: Article, page: Page) -> None:
+    def assign_segments_to_articles(self, article: Article, page: Page) -> None:
         if len(page.articles) == 1:
-            article.texts.append(page.text)
+            article.texts.append((page.page_number, page.text))
 
         elif len(page.articles) == 2:
             """Find break position and which part belongs to which article"""
@@ -232,17 +244,19 @@ class ConsolidateArticleTexts:
                 """A1 ligger först på sidan: => Hitta A2's titel"""
                 position = self.find_matching_title_position(A2, page.titles)
                 if position is not None:
-                    A1.texts.append(page.text[:position])
+                    A1.texts.append((page.page_number, page.text[:position]))
+
             elif A2.min_page_number < page.page_number and A1.min_page_number == page.page_number:
                 """A1 ligger sist på sidan: => Hitta A1's titel"""
                 position = self.find_matching_title_position(A1, page.titles)
                 if position is not None:
-                    A1.texts.append(page.text[position:])
+                    A1.texts.append((page.page_number, page.text[position:]))
 
             # segments = page.segments()
             # text: str = self.extract_article_text(article, page)
             # page_titles = page.titles
 
+    # NOTE: Main logic
     def find_matching_title_position(self, article: Article, titles: List) -> Optional[int]:
         if article.catalogue_title is None:
             return None
@@ -255,23 +269,69 @@ class ConsolidateArticleTexts:
         return None
 
 
+@dataclass
+class IssueStatistics:
+    # all articles
+    #   expected pages
+    #   assigned pages
+    # all pages
+    # number of pages in issue
+    # number of article pages in issue according to index
+    # number of pages in issue assigned to an article
+    issue: CourierIssue
+
+    @property
+    def total_pages(self) -> int:
+        return len(self.issue)
+
+    @property
+    def assigned_pages(self) -> int:
+        return len(self.issue.get_assigned_pages())
+
+    @property
+    def expected_article_pages(self) -> int:
+        return len(self.issue.get_article_pages())
+
+    @property
+    def number_of_articles(self) -> int:
+        return self.issue.num_articles
+
+
 class ExtractArticles:
-    def extract(self, issue: CourierIssue) -> CourierIssue:
+    @staticmethod
+    def extract(issue: CourierIssue) -> CourierIssue:
         AssignArticlesToPages().assign(issue)
         ConsolidateArticleTexts().consolidate(issue)
         return issue
 
+    @staticmethod
+    def statistics(issue: CourierIssue) -> IssueStatistics:
+        return IssueStatistics(issue)
 
-if __name__ == '__main__':
 
-    issue = CourierIssue('012656')
-    ExtractArticles().extract(issue)
+def export_articles(courier_id: str) -> None:
+    issue = CourierIssue(courier_id)
+    ExtractArticles.extract(issue)
+    issue_statistics = ExtractArticles.statistics(issue)
+    print(
+        f'assigned {issue_statistics.assigned_pages} pages out of {issue_statistics.expected_article_pages} ({issue_statistics.total_pages}) {100*issue_statistics.assigned_pages/issue_statistics.expected_article_pages}'
+    )
+
     for article in issue.articles:
         if article.catalogue_title is None:
             continue
-        filename = os.path.join('/tmp', re.sub('[^-a-zA-Z0-9_.() ]+', '', article.catalogue_title.lower()))
+        filename = os.path.join(
+            CONFIG.project_root / 'tests/output',
+            courier_id + '_' + re.sub('[^-a-zA-Z0-9_.() ]+', '', article.catalogue_title.lower()),
+        )
         with open(filename, 'w') as fp:
-            fp.write('\n\n'.join(article.texts))
+            fp.write(article.get_text())
+
+
+if __name__ == '__main__':
+
+    export_articles('012656')
+
 
 # courier_id;year;record_number;pages;catalogue_title
 # 074873;1974;50290;"[4, 5]";"1 + 1 = 3: every day over 200,000 more mouths to feed"
