@@ -66,7 +66,8 @@ def test_create_article():
 
     assert courier_issue.courier_id == '012656'
     assert courier_issue.num_articles == 5
-    assert courier_issue.num_pages == 35
+    # assert courier_issue.num_pages == 35
+    assert len(courier_issue) == 35
     assert courier_issue.double_pages == [18]
 
     article: Article = courier_issue.get_article('61469')
@@ -84,7 +85,7 @@ def test_create_courier_issue():
     assert isinstance(courier_issue, CourierIssue)
 
     assert courier_issue.num_articles == 3
-    assert courier_issue.num_pages == 34
+    assert len(courier_issue) == 34
     assert courier_issue.double_pages == [10, 17]
 
 
