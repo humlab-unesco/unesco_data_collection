@@ -18,10 +18,9 @@ def test_read_xml_removes_control_chars():
 
 
 def test_get_xml_issue_content_return_expected_values():
-    content = get_xml_issue_content('061468')
-    assert isinstance(content, untangle.Element)
-    assert 'MARCH 1964' in content.document.page[2].cdata
-
+    content: ExtractedIssue = get_xml_issue_content(courier_id='012656')
+    assert isinstance(content, ExtractedIssue)
+    assert 'SEPTEMBER 1966' in str(content.pages[2])
 
 def test_get_xml_issue_content_with_invalid_id_raises_value_error():
     with pytest.raises(ValueError, match='Not a valid courier id'):
@@ -31,9 +30,9 @@ def test_get_xml_issue_content_with_invalid_id_raises_value_error():
 
 
 def test_get_pdf_issue_content_return_expected_values():
-    courier_issue: ExtractedIssue = get_pdf_issue_content(courier_id='012656')
-    assert isinstance(courier_issue.content, untangle.Element)
-    assert 'MARCH 1964' in courier_issue.content.document.page[2].cdata
+    content: ExtractedIssue = get_pdf_issue_content(courier_id='012656')
+    assert isinstance(content, ExtractedIssue)
+    assert 'SEPTEMBER 1966' in str(content.pages[2])
 
 
 @pytest.mark.parametrize(
