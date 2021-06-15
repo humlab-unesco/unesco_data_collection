@@ -311,6 +311,7 @@ class ExtractArticles:
         return IssueStatistics(issue)
 
 
+# TODO: Add logging and skip completed. See extract.interface.ITextExtractor.batch_extract
 def export_articles(
     courier_id: str,
     export_folder: Union[str, os.PathLike] = CONFIG.articles_dir / 'exported',
@@ -343,4 +344,3 @@ if __name__ == '__main__':
             print(f'{courier_id} not in article index')
             continue
         export_articles(courier_id)
-
