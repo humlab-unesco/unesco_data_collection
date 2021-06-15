@@ -195,10 +195,10 @@ class PagesFactory:
             if page_number - 1 in issue.double_pages
             else Page(
                 page_number=page_number,
-                text=issue.content.pages[issue.to_pdf_page_number(page_number)].content,
-                titles=issue.content.pages[issue.to_pdf_page_number(page_number)].titles,
+                text=issue.content.pages[issue.to_pdf_page_number(page_number - 1)].content,
+                titles=issue.content.pages[issue.to_pdf_page_number(page_number - 1)].titles,
             )
-            for page_number in range(1, num_pages)
+            for page_number in range(1, num_pages + 1)
         ]
         return pages
 
