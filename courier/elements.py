@@ -9,7 +9,7 @@ from typing import List, Optional, Set, Tuple, Union
 import untangle
 
 from courier.config import get_config
-from courier.extract.java_extractor import ExtractedIssue, JavaExtractor
+from courier.extract.java_extractor import ExtractedIssue, ExtractedPage, JavaExtractor
 from courier.utils import split_by_idx, valid_xml
 
 CONFIG = get_config()
@@ -25,16 +25,23 @@ def read_xml(filename: Union[str, bytes, os.PathLike]) -> untangle.Element:
 
 
 # NOTE: Needed for test discovery (WIP). Remove later if deemed deprecated.
-# FIXME: Don't return untangle.Element
-def get_xml_issue_content(courier_id: str) -> untangle.Element:
+def get_xml_issue_content(courier_id: str) -> ExtractedIssue:
+
     if len(courier_id) != 6:
         raise ValueError(f'Not a valid courier id "{courier_id}')
     if courier_id not in CONFIG.article_index.courier_id.values:
         raise ValueError(f'{courier_id} not in article index')
-    return read_xml(list(CONFIG.xml_dir.glob(f'{courier_id}*.xml'))[0])
+
+    untangle_element = read_xml(list(CONFIG.xml_dir.glob(f'{courier_id}*.xml'))[0])
+    pages = []
+    for pdf_page_number, content in enumerate(untangle_element.document.page, 1):
+        page: ExtractedPage = ExtractedPage(pdf_page_number=pdf_page_number, content=content, titles=[])
+        pages.append(page)
+
+    issue: ExtractedIssue = ExtractedIssue(pages=pages)
+    return issue
 
 
-# FIXME: get_xml_issue_content and get_pdf_issue_content should have same return type
 def get_pdf_issue_content(courier_id: str) -> ExtractedIssue:
     extractor: JavaExtractor = JavaExtractor()
     filename: str = str(list(CONFIG.pdf_dir.glob(f'{courier_id}*.pdf'))[0])
@@ -174,7 +181,6 @@ class PagesFactory:
             else Page(
                 page_number=page_number,
                 text=issue.content.pages[issue.to_pdf_page_number(page_number)].content,
-                # FIXME: #31 Change titles to other type or change logic that depends on it
                 titles=issue.content.pages[issue.to_pdf_page_number(page_number)].titles,
             )
             for page_number in range(1, num_pages + 1)
