@@ -25,6 +25,7 @@ def read_xml(filename: Union[str, bytes, os.PathLike]) -> untangle.Element:
 
 
 # NOTE: Needed for test discovery (WIP). Remove later if deemed deprecated.
+# FIXME: Don't return untangle.Element
 def get_xml_issue_content(courier_id: str) -> untangle.Element:
     if len(courier_id) != 6:
         raise ValueError(f'Not a valid courier id "{courier_id}')
@@ -33,8 +34,8 @@ def get_xml_issue_content(courier_id: str) -> untangle.Element:
     return read_xml(list(CONFIG.xml_dir.glob(f'{courier_id}*.xml'))[0])
 
 
+# FIXME: get_xml_issue_content and get_pdf_issue_content should have same return type
 def get_pdf_issue_content(courier_id: str) -> ExtractedIssue:
-
     extractor: JavaExtractor = JavaExtractor()
     filename: str = str(list(CONFIG.pdf_dir.glob(f'{courier_id}*.pdf'))[0])
     issue: ExtractedIssue = extractor.extract_issue(filename)
@@ -42,11 +43,16 @@ def get_pdf_issue_content(courier_id: str) -> ExtractedIssue:
 
 
 class Page:
-    # FIXME: Make titles and articles optional
-    def __init__(self, page_number: int, text: str, titles: List[Tuple[str, int]], articles: List['Article'] = None):
+    def __init__(
+        self,
+        page_number: int,
+        text: str,
+        titles: Optional[List[Tuple[str, int]]] = None,
+        articles: Optional[List['Article']] = None,
+    ):
         self.page_number: int = page_number
         self.text: str = str(text)
-        self.titles: List[Tuple[str, int]] = titles
+        self.titles: List[Tuple[str, int]] = titles or []
         self.articles: List['Article'] = articles or []
 
     def __str__(self) -> str:
@@ -135,10 +141,10 @@ class CourierIssue:
     def num_articles(self) -> int:
         return len(self.articles)
 
-    def __length__(self) -> int:
+    def __len__(self) -> int:
         return len(self.pages)
 
-    def __get_item__(self, index: int) -> Page:
+    def __getitem__(self, index: int) -> Page:
         return self.pages[index]
 
     # FIXME: Return correct item/type
@@ -187,12 +193,13 @@ class AssignArticlesToPages:
                 article.pages.append(page)
 
     def _find_articles_on_page(self, issue: CourierIssue, page: Page) -> List[Article]:
-        articles = [a for a in issue.articles if page.page_number in a.page_numbers]  # FIXME: Handle that a.page_numbers can be None
+        articles = [
+            a for a in issue.articles if page.page_number in a.page_numbers
+        ]  # FIXME: Handle that a.page_numbers can be None
         return articles
 
 
 class ConsolidateArticleTexts:
-    
     def consolidate(self, issue: CourierIssue) -> None:  # -> CourierIssue:
         for article in issue.articles:
             for page in article.pages:
