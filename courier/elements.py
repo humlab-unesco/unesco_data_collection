@@ -114,7 +114,7 @@ class Article:
     def get_text(self) -> str:
         text: str = ''
         for page_number, page_text in self.texts:
-            text += f'\n####\n#### PAGE NUMBER {page_number}\n####\n####\n{page_text}\n####'
+            text += f'\n{20*"-"} Page {page_number} {20*"-"}\n\n{page_text}\n'
         return text
 
     def get_assigned_pages(self) -> Set[int]:
