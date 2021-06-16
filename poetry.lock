@@ -233,6 +233,20 @@ python-versions = "*"
 flake8 = "*"
 
 [[package]]
+name = "ftfy"
+version = "6.0.3"
+description = "Fixes some problems with Unicode text after the fact"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+wcwidth = "*"
+
+[package.extras]
+docs = ["furo", "sphinx"]
+
+[[package]]
 name = "fuzzysearch"
 version = "0.7.3"
 description = "fuzzysearch is useful for finding approximate subsequence matches"
@@ -1045,7 +1059,7 @@ test = ["pytest (>=5.3.5)"]
 name = "wcwidth"
 version = "0.2.5"
 description = "Measures the displayed width of unicode strings in a terminal"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1071,7 +1085,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "400c48d9f06e1df03e446ae0b033469dfe1381a63262497602c05fcde628931f"
+content-hash = "b62e810bd059bd119f66c948b6c7c98c3e3cf6a5ce8c5acc9d26ff9754a540b2"
 
 [metadata.files]
 appdirs = [
@@ -1244,6 +1258,9 @@ flake8-pytest-style = [
 ]
 flake8-quotes = [
     {file = "flake8-quotes-3.2.0.tar.gz", hash = "sha256:3f1116e985ef437c130431ac92f9b3155f8f652fda7405ac22ffdfd7a9d1055e"},
+]
+ftfy = [
+    {file = "ftfy-6.0.3.tar.gz", hash = "sha256:ba71121a9c8d7790d3e833c6c1021143f3e5c4118293ec3afb5d43ed9ca8e72b"},
 ]
 fuzzysearch = [
     {file = "fuzzysearch-0.7.3-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:1ed619f24303a41e59d33fc01bf959439df40b2bf096d00607eff7e0c5a26290"},

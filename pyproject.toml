@@ -10,6 +10,7 @@ packages = [{include = "unesco_data_collection"}]
 python = "^3.8"
 argh = "^0.26.2"
 bs4 = "^0.0.1"
+ftfy = "^6.0.3"
 fuzzysearch = "^0.7.3"
 fuzzywuzzy = {extras = ["speedup"], version = "^0.18.0"}
 Jinja2 = "^3.0.1"
