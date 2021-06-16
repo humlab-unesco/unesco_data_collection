@@ -56,7 +56,7 @@ class Page:
         self,
         page_number: int,
         text: str,
-        titles: Optional[List[Tuple[str, int]]],
+        titles: Optional[List[Tuple[str, int]]] = None,
         articles: Optional[List['Article']] = None,
     ):
         self.page_number: int = page_number
@@ -75,7 +75,7 @@ class Page:
         return titles
 
     def get_pritty_titles(self) -> str:
-        return f'\n{5*"-"}'.join([f'\tposition {position}:\t"{title}"' for position, title in self.titles])
+        return f'{5*"-"}' + f'\n{5*"-"}'.join([f'\tposition {position}:\t"{title}"' for position, title in self.titles])
 
     def segments(self) -> List[str]:
         if not self.titles:
@@ -89,7 +89,7 @@ class Page:
 @dataclass
 class DoubleSpreadRightPage(Page):
     def __init__(self, page_number: int):
-        super().__init__(page_number=page_number, text='', titles=[])
+        super().__init__(page_number=page_number, text='', titles=None)
 
 
 class Article:
