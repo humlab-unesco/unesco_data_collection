@@ -56,12 +56,12 @@ class Page:
         self,
         page_number: int,
         text: str,
-        titles: List[Tuple[str, int]],
+        titles: Optional[List[Tuple[str, int]]],
         articles: Optional[List['Article']] = None,
     ):
         self.page_number: int = page_number
         self.text: str = str(text)
-        self.titles: List[Tuple[int, str]] = self.cleanup_titles(titles)
+        self.titles: List[Tuple[int, str]] = self.cleanup_titles(titles) if titles is not None else []
         self.articles: List['Article'] = articles or []
 
     def __str__(self) -> str:
@@ -96,17 +96,17 @@ class Article:
     def __init__(
         self,
         courier_issue: 'CourierIssue',
-        courier_id: str = None,
-        year: str = None,
-        record_number: str = None,
-        pages: List[int] = None,
+        courier_id: Optional[str] = None,
+        year: Optional[str] = None,
+        record_number: Optional[str] = None,
+        pages: Optional[List[int]] = None,
         catalogue_title: str = None,
     ):
         self.courier_issue = courier_issue
         self.courier_id: Optional[str] = courier_id
         self.year: Optional[str] = year
         self.record_number: Optional[str] = record_number
-        self.page_numbers: Optional[List[int]] = pages  # TODO: Change name of pages in article_index page_numbers
+        self.page_numbers: List[int] = pages or []  # TODO: Change name of pages in article_index page_numbers
         self.catalogue_title: Optional[str] = catalogue_title
         self.pages: List[Page] = []
         self.texts: List[Tuple[int, str]] = []
