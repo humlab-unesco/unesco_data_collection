@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Set, Tuple, Union
 
+import ftfy
 import untangle
 
 from courier.config import get_config
@@ -55,24 +56,32 @@ class Page:
         self,
         page_number: int,
         text: str,
-        titles: Optional[List[Tuple[str, int]]] = None,
+        titles: List[Tuple[str, int]],
         articles: Optional[List['Article']] = None,
     ):
         self.page_number: int = page_number
         self.text: str = str(text)
-        self.titles: List[Tuple[str, int]] = titles or []
+        self.titles: List[Tuple[int, str]] = self.cleanup_titles(titles)
         self.articles: List['Article'] = articles or []
 
     def __str__(self) -> str:
         return self.text
 
+    def cleanup_titles(self, titles: List[Tuple[str, int]]) -> List[Tuple[int, str]]:
+        if titles is None:
+            return []
+        titles = [(position, ftfy.fix_text(title)) for title, position in titles]
+        titles = [(position, ' '.join([x for x in title.split() if len(x) > 1])) for position, title in titles]
+        return titles
+
+    def get_pritty_titles(self) -> str:
+        return f'\n{5*"-"}'.join([f'\tposition {position}:\t"{title}"' for position, title in self.titles])
+
     def segments(self) -> List[str]:
         if not self.titles:
             assert len(self.articles) == 1
             return [self.text]
-        segments: List[str] = list(
-            split_by_idx(self.text, [title_info[1] - len(title_info[0]) for title_info in self.titles])
-        )
+        segments: List[str] = list(split_by_idx(self.text, [position - len(title) for position, title in self.titles]))
         # titled_text = ''.join(list(roundrobin(parts, [f'\n[___{title[0]}___]\n' for title in titles])))
         return segments
 
@@ -97,10 +106,11 @@ class Article:
         self.courier_id: Optional[str] = courier_id
         self.year: Optional[str] = year
         self.record_number: Optional[str] = record_number
-        self.page_numbers: Optional[List[int]] = pages  # TODO: Change name in article_index
+        self.page_numbers: Optional[List[int]] = pages  # TODO: Change name of pages in article_index page_numbers
         self.catalogue_title: Optional[str] = catalogue_title
         self.pages: List[Page] = []
         self.texts: List[Tuple[int, str]] = []
+        self.errors: List[str] = []
 
     # FIXME: Check this
     @property
@@ -114,12 +124,20 @@ class Article:
 
     def get_text(self) -> str:
         text: str = ''
+        text += f'{5*"-"} Title according to index: {self.catalogue_title}\n'
+        text += f'{5*"-"} Pages according to index: {",".join(str(x) for x in self.page_numbers)}\n'
+        text += f'{5*"-"} Assigned according to index: {self.page_numbers}\n'
+        text += f'{5*"-"} Missing pages: {self.get_not_found_pages()}\n'
+        text += f'{5*"-"}'.join(self.errors)
         for page_number, page_text in self.texts:
             text += f'\n{20*"-"} Page {page_number} {20*"-"}\n\n{page_text}\n'
         return text
 
     def get_assigned_pages(self) -> Set[int]:
         return {p[0] for p in self.texts}
+
+    def get_not_found_pages(self) -> Set[int]:
+        return {x for x in self.page_numbers if x not in self.get_assigned_pages()}
 
 
 class CourierIssue:
@@ -142,7 +160,7 @@ class CourierIssue:
         self.pages: List[Page] = PagesFactory().create(self)
 
     def to_pdf_page_number(self, page_number: int) -> int:
-        _pdf_page_number = page_number - len([x for x in self.double_pages if x < page_number])
+        _pdf_page_number = page_number - 1 - len([x for x in self.double_pages if x < page_number])
         return _pdf_page_number
 
     def get_article(self, record_number: str) -> Optional[Article]:
@@ -196,8 +214,8 @@ class PagesFactory:
             if page_number - 1 in issue.double_pages
             else Page(
                 page_number=page_number,
-                text=issue.content.pages[issue.to_pdf_page_number(page_number - 1)].content,
-                titles=issue.content.pages[issue.to_pdf_page_number(page_number - 1)].titles,
+                text=issue.content.pages[issue.to_pdf_page_number(page_number)].content,
+                titles=issue.content.pages[issue.to_pdf_page_number(page_number)].titles,
             )
             for page_number in range(1, num_pages + 1)
         ]
@@ -246,24 +264,40 @@ class ConsolidateArticleTexts:
                 position = self.find_matching_title_position(A2, page.titles)
                 if position is not None:
                     A1.texts.append((page.page_number, page.text[:position]))
+                else:
+                    article.errors.append(
+                        f'Unhandled case: Page {page.page_number}. Unable to find title on page (1st).'
+                    )
+                    article.errors.append(f'\nTitles on page {page.page_number}:\n{page.get_pritty_titles()}')
 
             elif A2.min_page_number < page.page_number and A1.min_page_number == page.page_number:
                 """A1 ligger sist på sidan: => Hitta A1's titel"""
                 position = self.find_matching_title_position(A1, page.titles)
                 if position is not None:
                     A1.texts.append((page.page_number, page.text[position:]))
+                else:
+                    article.errors.append(
+                        f'Unhandled case: Page {page.page_number}. Unable to find title on page (2nd).'
+                    )
+                    article.errors.append(f'\nTitles on page {page.page_number}:\n{page.get_pritty_titles()}')
+
+            else:
+                article.errors.append(f'Unhandled case: Page {page.page_number}. Two articles starting on same page.')
 
             # segments = page.segments()
             # text: str = self.extract_article_text(article, page)
             # page_titles = page.titles
 
+        else:
+            article.errors.append(f'Unhandled page {page.page_number}. More than two articles on page.')
+
     # NOTE: Main logic
     def find_matching_title_position(self, article: Article, titles: List) -> Optional[int]:
         if article.catalogue_title is None:
             return None
-        title_bow: Set[str] = set(str(article.catalogue_title).lower().split())
+        title_bow: Set[str] = set(article.catalogue_title.lower().split())
         for position, candidate_title in titles:
-            candidate_title_bow: Set[str] = set(str(candidate_title).lower().split())
+            candidate_title_bow: Set[str] = set(candidate_title.lower().split())
             common_words = title_bow.intersection(candidate_title_bow)
             if len(common_words) >= 2 and len(common_words) >= len(title_bow) / 2:
                 return position
@@ -332,7 +366,7 @@ def export_articles(
         if article.catalogue_title is None:
             continue
         safe_title = re.sub(r'[^\w]+', '_', str(article.catalogue_title).lower())
-        file = Path(export_folder) / f'{article.courier_id}_{article.record_number}_{safe_title}.txt'
+        file = Path(export_folder) / f'{article.courier_id}_{article.record_number}_{safe_title[:60]}.txt'
         with open(file, 'w') as fp:
             fp.write(article.get_text())
 
@@ -344,3 +378,8 @@ if __name__ == '__main__':
             print(f'{courier_id} not in article index')
             continue
         export_articles(courier_id)
+
+    # export_articles('014255')
+    # export_articles('015480')
+    # export_articles('074873')
+    # export_articles('098493')
