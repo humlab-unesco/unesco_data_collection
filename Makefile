@@ -25,6 +25,11 @@ test: clean
 	@poetry run pytest $(PYTEST_ARGS) tests
 	@rm -rf ./tests/output/*
 
+test_no_legacy: clean
+	@mkdir -p ./tests/output
+	@poetry run pytest -m "not legacy" $(PYTEST_ARGS) tests
+	@rm -rf ./tests/output/*
+
 pylint:
 	@poetry run pylint --version | grep pylint
 	@poetry run pylint $(SOURCE_FOLDERS)
