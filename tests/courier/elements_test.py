@@ -17,7 +17,6 @@ from courier.extract.java_extractor import ExtractedIssue
 # TODO: Mock
 
 
-
 def test_read_xml_removes_control_chars():
     expected = '\n\\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08\n\\x0b \\x0c \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f\n'
     content = read_xml(Path('tests/fixtures/invalid_chars.xml'))
@@ -69,6 +68,7 @@ def test_page_str_returns_expected():
     page = Page(page_number=1, text='test string')
     assert str(page) == 'test string'
 
+
 @pytest.mark.legacy
 def test_create_article():
     courier_issue: CourierIssue = CourierIssue('012656')
@@ -105,6 +105,7 @@ def test_create_non_existing_issue_raises_value_error():
     with pytest.raises(ValueError, match='not in article index'):
         CourierIssue('000000')
 
+
 @pytest.mark.legacy
 @pytest.mark.parametrize(
     'courier_id, expected',
@@ -119,11 +120,13 @@ def test_courier_issues_has_correct_double_pages(courier_id, expected):
     result = CourierIssue(courier_id).double_pages
     assert result == expected
 
+
 @pytest.mark.legacy
 def test_courier_issue_has_correct_index():
     courier_issue = CourierIssue('061468')
     assert not courier_issue.index.empty
     assert courier_issue.index.shape == (3, 5)
+
 
 @pytest.mark.legacy
 @pytest.mark.parametrize(
