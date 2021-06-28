@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 import pytest
 import untangle
@@ -6,7 +7,9 @@ import untangle
 from courier.elements import (
     Article,
     CourierIssue,
+    DoubleSpreadRightPage,
     ExtractArticles,
+    IssueStatistics,
     Page,
     get_pdf_issue_content,
     get_xml_issue_content,
@@ -69,24 +72,22 @@ def test_page_str_returns_expected():
     assert str(page) == 'test string'
 
 
-@pytest.mark.legacy
 def test_create_article():
     courier_issue: CourierIssue = CourierIssue('012656')
 
     assert courier_issue.courier_id == '012656'
     assert courier_issue.num_articles == 5
-    # assert courier_issue.num_pages == 35
-    assert len(courier_issue) == 35
+    assert len(courier_issue) == 36
     assert courier_issue.double_pages == [18]
 
-    article: Article = courier_issue.get_article('61469')
+    article: Optional[Article] = courier_issue.get_article('61469')
     assert article is None
 
     article: Article = courier_issue.articles[0]
     assert article.courier_id == '012656'
-    assert article.record_number == '15043'
-    assert 'Bronze miniatures from ancient Sardinia' in article.title
-    assert article.year == '1966'
+    assert article.record_number == 15043
+    assert 'Bronze miniatures from ancient Sardinia' in article.catalogue_title
+    assert article.year == 1966
 
 
 @pytest.mark.legacy
@@ -95,7 +96,7 @@ def test_create_courier_issue():
     assert isinstance(courier_issue, CourierIssue)
 
     assert courier_issue.num_articles == 3
-    assert len(courier_issue) == 34
+    assert len(courier_issue) == 36
     assert courier_issue.double_pages == [10, 17]
 
 
@@ -121,52 +122,77 @@ def test_courier_issues_has_correct_double_pages(courier_id, expected):
     assert result == expected
 
 
-@pytest.mark.legacy
-def test_courier_issue_has_correct_index():
-    courier_issue = CourierIssue('061468')
-    assert not courier_issue.index.empty
-    assert courier_issue.index.shape == (3, 5)
+# @pytest.mark.skip('deprecated')
+# def test_courier_issue_has_correct_index():
+#     courier_issue = CourierIssue('061468')
+#     assert not courier_issue.index.empty
+#     assert courier_issue.index.shape == (3, 5)
 
 
-@pytest.mark.legacy
-@pytest.mark.parametrize(
-    'courier_id, pattern, expected',
-    [
-        ('061468', 'MARCH 1964', [(1, '1'), (3, '3')]),
-        ('061468', r'a.*open.*world', [(1, '1')]),
-        ('061468', 'nonmatchingpattern', []),
-        ('074891', 'drought over africa', [(3, '3'), (45, '45'), (67, '67')]),
-    ],
-)
-def test_courier_issue_find_pattern_returns_expected_values(courier_id, pattern, expected):
-    result = CourierIssue(courier_id).find_pattern(pattern)
-    assert result == expected
+# @pytest.mark.legacy
+# @pytest.mark.parametrize(
+#     'courier_id, pattern, expected',
+#     [
+#         ('061468', 'MARCH 1964', [(1, '1'), (3, '3')]),
+#         ('061468', r'a.*open.*world', [(1, '1')]),
+#         ('061468', 'nonmatchingpattern', []),
+#         ('074891', 'drought over africa', [(3, '3'), (45, '45'), (67, '67')]),
+#     ],
+# )
+# def test_courier_issue_find_pattern_returns_expected_values(courier_id, pattern, expected):
+#     result = CourierIssue(courier_id).find_pattern(pattern)
+#     assert result == expected
 
 
 @pytest.mark.legacy
 def test_courier_issue_get_page_when_issue_has_double_pages_returns_expected():
     courier_issue = CourierIssue('069916')
-    assert courier_issue.double_pages == [10, 11, 24]
-    assert courier_issue.get_page(10).text == courier_issue.get_page(11).text == courier_issue.get_page(12).text
-    assert courier_issue.get_page(24).text == courier_issue.get_page(25).text
+    assert courier_issue._pdf_double_page_numbers == [10, 11, 24]  # pylint: disable=protected-access
+    assert courier_issue.double_pages == [10, 12, 26]
+
+    assert courier_issue.get_page(11) == courier_issue.__getitem__(10) == courier_issue[10]
+
+    assert isinstance(courier_issue.get_page(11), DoubleSpreadRightPage)
+    assert isinstance(courier_issue.get_page(13), DoubleSpreadRightPage)
+    assert isinstance(courier_issue.get_page(27), DoubleSpreadRightPage)
+
+    assert courier_issue.get_page(11).text == courier_issue.get_page(13).text == courier_issue.get_page(27).text == ''
 
 
-@pytest.mark.legacy
-def test_courier_issue_pages_when_issue_has_double_pages_returns_expected():
-    courier_issue = CourierIssue('069916')
-    pages = [p for p in courier_issue.pages]
-    assert len(pages) == courier_issue.num_pages
-    assert pages[8].text != pages[9].text == pages[10].text == pages[11].text != pages[12].text
+# @pytest.mark.skip('deprecated')
+# def test_courier_issue_pages_when_issue_has_double_pages_returns_expected():
+#     courier_issue = CourierIssue('069916')
+#     pages = [p for p in courier_issue.pages]
+#     assert len(pages) == courier_issue.num_pages
+#     assert pages[8].text != pages[9].text == pages[10].text == pages[11].text != pages[12].text
 
 
 # 069916;"10 11 24"
 def test_to_pdf_page_number():
     issue = CourierIssue('012656')
-    assert 15 == issue.to_pdf_page_number(15)
-    assert 18 == issue.to_pdf_page_number(18)
-    assert 19 == issue.to_pdf_page_number(20)
+    assert issue.to_pdf_page_number(15) == 14
+    assert issue.to_pdf_page_number(18) == 17
+    assert issue.to_pdf_page_number(19) == 17
+    assert issue.to_pdf_page_number(20) == 18
+    assert issue.to_pdf_page_number(21) == 19
+
+
+# TODO
+# test AssignArticlesToPages
+# test ConsolidateArticleTexts
+# test ExtractArticles assigns articles to issue pages
+
+pytest.mark.skip('temp')
 
 
 def test_main():
+
     issue = CourierIssue('012656')
+
+    assert IssueStatistics(issue).total_pages == 36
+    assert IssueStatistics(issue).assigned_pages == 0
+    assert IssueStatistics(issue).expected_article_pages == 23
+    assert IssueStatistics(issue).number_of_articles == 5
+
     ExtractArticles.extract(issue)
+    assert IssueStatistics(issue).assigned_pages == 22
