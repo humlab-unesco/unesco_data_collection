@@ -97,17 +97,17 @@ class Article:
         self,
         courier_issue: 'CourierIssue',
         courier_id: Optional[str] = None,
-        year: Optional[str] = None,
-        record_number: Optional[str] = None,
+        year: Optional[int] = None,
+        record_number: Optional[int] = None,
         pages: Optional[List[int]] = None,
-        catalogue_title: str = None,
+        catalogue_title: Optional[str] = None,
     ):
         self.courier_issue = courier_issue
         self.courier_id: Optional[str] = courier_id
-        self.year: Optional[str] = year
-        self.record_number: Optional[str] = record_number
+        self.year: Optional[int] = year
+        self.record_number: Optional[int] = record_number
         self.page_numbers: List[int] = pages or []  # TODO: Change name of pages in article_index page_numbers
-        self.catalogue_title: Optional[str] = catalogue_title
+        self.catalogue_title: str = catalogue_title or ''
         self.pages: List[Page] = []
         self.texts: List[Tuple[int, str]] = []
         self.errors: List[str] = []
@@ -181,6 +181,9 @@ class CourierIssue:
 
     def __getitem__(self, index: int) -> Page:
         return self.pages[index]
+
+    def get_page(self, page_number: int) -> Page:
+        return self[page_number - 1]
 
     def get_assigned_pages(self) -> Set[int]:
         return set.union(*[p.get_assigned_pages() for p in self.articles])
