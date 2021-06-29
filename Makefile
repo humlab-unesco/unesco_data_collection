@@ -25,19 +25,21 @@ test: output-dir
 	@poetry run pytest --durations=0 tests
 	@rm -rf ./tests/output/*
 
-test-no-java: clean output-dir
-	@poetry run pytest -m "not java" $(PYTEST_ARGS) tests
+test-no-java: output-dir
+	@poetry run pytest -m "not java" $(PYTEST_ARGS) tests/courier
 	@rm -rf ./tests/output/*
 
-test-java: clean output-dir
-	@poetry run pytest -m "java" tests
+test-java: output-dir
+	@poetry run pytest -m "java" -p no:faulthandler tests/courier
 	@rm -rf ./tests/output/*
 
-test-legal-instruments: clean output-dir
+test-legal-instruments: output-dir
 	@poetry run pytest --durations=0 tests/legal_instruments
+	@rm -rf ./tests/output/*
 
-test-courier: clean output-dir
+test-courier: output-dir
 	@poetry run pytest --durations=0 -m "not java" tests/courier
+	@rm -rf ./tests/output/*
 
 retest: output-dir
 	@poetry run pytest --durations=0 --last-failed tests
