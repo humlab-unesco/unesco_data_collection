@@ -20,15 +20,32 @@ clean:
 	@find . -type d -name '.mypy_cache' -exec rm -rf {} +
 	@rm -rf tests/output
 
-test: clean
-	@mkdir -p ./tests/output
-	@poetry run pytest $(PYTEST_ARGS) tests
+test: output-dir
+	# @poetry run pytest $(PYTEST_ARGS) tests
+	@poetry run pytest --durations=0 tests
 	@rm -rf ./tests/output/*
 
-test_no_legacy: clean
-	@mkdir -p ./tests/output
-	@poetry run pytest -m "not legacy" $(PYTEST_ARGS) tests
+test-no-java: clean output-dir
+	@poetry run pytest -m "not java" $(PYTEST_ARGS) tests
 	@rm -rf ./tests/output/*
+
+test-java: clean output-dir
+	@poetry run pytest -m "java" tests
+	@rm -rf ./tests/output/*
+
+test-legal-instruments: clean output-dir
+	@poetry run pytest --durations=0 tests/legal_instruments
+
+test-courier: clean output-dir
+	@poetry run pytest --durations=0 -m "not java" tests/courier
+
+retest: output-dir
+	@poetry run pytest --durations=0 --last-failed tests
+
+output-dir:
+	@mkdir -p ./tests/output
+
+.PHONY: retest test-legal-instruments test-courier test-no-java test-java
 
 pylint:
 	@poetry run pylint --version | grep pylint
