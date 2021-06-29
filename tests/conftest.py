@@ -2,7 +2,6 @@
 # noqa: F401,F811
 # pyright: reportMissingImports=false, reportUnusedVariable=warning
 # pylint: disable=unused-variable,unused-import,redefined-outer-name
-# https://loguru.readthedocs.io/en/stable/resources/migration.html#making-things-work-with-pytest-and-caplog
 
 import logging
 
@@ -13,6 +12,10 @@ from loguru import logger
 
 @pytest.fixture
 def caplog(_caplog):
+    """Captures `loguru` output so that it can be tested against
+    See: https://loguru.readthedocs.io/en/stable/resources/migration.html#making-things-work-with-pytest-and-caplog
+    """
+
     class PropogateHandler(logging.Handler):
         def emit(self, record):
             logging.getLogger(record.name).handle(record)
