@@ -149,7 +149,6 @@ def test_create_non_existing_issue_raises_value_error():
 #     assert result == expected
 
 
-@pytest.mark.legacy
 def test_courier_issue_get_page_when_issue_has_double_pages_returns_expected():
     courier_issue = CourierIssue('069916')
     assert courier_issue._pdf_double_page_numbers == [10, 11, 24]  # pylint: disable=protected-access
