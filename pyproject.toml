@@ -81,6 +81,11 @@ testpaths = [
 ]
 python_files = "*_test.py"
 python_functions = "test_*"
+markers = [
+    "java: marks tests as java dependent (deselect with '-m \"not java\"')",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "serial",
+]
 
 
 [tool.coverage.run]

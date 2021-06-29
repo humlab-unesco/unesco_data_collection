@@ -13,6 +13,7 @@ from courier.extract.tesseract_extractor import TesseractExtractor
 CONFIG = get_config()
 
 
+@pytest.mark.java
 @pytest.mark.parametrize(
     'method, instance',
     [
@@ -32,6 +33,7 @@ def test_get_extractor_with_unknown_method_raises_value_error():
         get_extractor('Unknown method')
 
 
+@pytest.mark.java
 @pytest.mark.parametrize(
     'extractor, first_page, last_page, expected',
     [
@@ -66,6 +68,7 @@ def test_extract(extractor, first_page, last_page, expected):
         assert (Path(output_dir) / 'extract.log').exists()
 
 
+@pytest.mark.java
 @pytest.mark.parametrize(
     'extractor, first_page, last_page, expected',
     [
@@ -92,6 +95,7 @@ def test_extract_with_logfile_partially_completed_jobs(extractor, first_page, la
         assert result == expected
 
 
+@pytest.mark.java
 @pytest.mark.parametrize(
     'extractor, first_page, last_page, expected',
     [

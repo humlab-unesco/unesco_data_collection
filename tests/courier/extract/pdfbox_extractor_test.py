@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 from typing import List
 
 import pdfbox
+import pytest
 
 from courier.config import get_config
 from courier.extract.interface import ITextExtractor
@@ -13,6 +14,7 @@ from courier.extract.utils import get_filenames
 CONFIG = get_config()
 
 
+@pytest.mark.java
 def test_python_pdfbox_extract_text_generates_correct_output():
 
     file = CONFIG.test_files_dir / 'test.pdf'
@@ -28,6 +30,7 @@ def test_python_pdfbox_extract_text_generates_correct_output():
         assert filecmp.cmp(output_path, expected_output) is True
 
 
+@pytest.mark.java
 def test_extract_generates_expected_output():
     with TemporaryDirectory() as output_dir:
         files: List[Path] = get_filenames(CONFIG.test_files_dir / 'test.pdf')
