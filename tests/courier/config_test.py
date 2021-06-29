@@ -62,13 +62,3 @@ def test_get_issue_article_index():
 
 def test_get_courier_issue_index_return_expected_values():
     assert len(CONFIG.get_issue_article_index('061468')) == 3
-
-
-@pytest.mark.skip(reason='Validity tests removed')
-def test_get_courier_issue_index_with_invalid_id_raises_value_error():
-    with pytest.raises(ValueError, match='Not a valid courier id'):
-        CONFIG.get_issue_article_index('')
-    with pytest.raises(ValueError, match='Not a valid courier id'):
-        CONFIG.get_issue_article_index('0')
-    with pytest.raises(ValueError, match='not in article index'):
-        CONFIG.get_issue_article_index('000000')
