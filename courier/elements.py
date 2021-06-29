@@ -3,6 +3,7 @@
 import io
 import os
 import re
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Set, Tuple, Union
@@ -186,6 +187,10 @@ class CourierIssue:
         return self[page_number - 1]
 
     def get_assigned_pages(self) -> Set[int]:
+        return {p.page_number for p in self.pages if len(p.articles) != 0}
+
+    # TODO: Check
+    def get_consolidated_pages(self) -> Set[int]:
         return set.union(*[p.get_assigned_pages() for p in self.articles])
 
     def get_article_pages(self) -> Set[int]:
@@ -227,6 +232,9 @@ class PagesFactory:
 
 class AssignArticlesToPages:
     def assign(self, issue: CourierIssue) -> None:
+        if issue.get_assigned_pages():
+            warnings.warn(f'Pages already assigned to {issue.courier_id}', stacklevel=2)
+            return
         for page in issue.pages:
             if isinstance(page, DoubleSpreadRightPage):
                 continue
@@ -324,6 +332,11 @@ class IssueStatistics:
     def assigned_pages(self) -> int:
         """Number of pages in issue assigned to an article"""
         return len(self.issue.get_assigned_pages())
+
+    @property
+    def consolidated_pages(self) -> int:
+        """Number of consolidated pages in issue"""
+        return len(self.issue.get_consolidated_pages())
 
     @property
     def expected_article_pages(self) -> int:
