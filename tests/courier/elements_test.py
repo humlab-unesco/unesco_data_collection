@@ -1,22 +1,27 @@
+import filecmp
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Optional
 
 import pytest
 import untangle
 
+from courier.config import get_config
 from courier.elements import (
     Article,
+    AssignArticlesToPages,
     CourierIssue,
     DoubleSpreadRightPage,
-    ExtractArticles,
     IssueStatistics,
     Page,
+    export_articles,
     get_pdf_issue_content,
     get_xml_issue_content,
     read_xml,
 )
 from courier.extract.java_extractor import ExtractedIssue
 
+CONFIG = get_config()
 # TODO: Mock
 
 
@@ -90,14 +95,14 @@ def test_create_article():
     assert article.year == 1966
 
 
-@pytest.mark.legacy
-def test_create_courier_issue():
-    courier_issue = CourierIssue('061468')
-    assert isinstance(courier_issue, CourierIssue)
+# @pytest.mark.legacy
+# def test_create_courier_issue():
+#     courier_issue = CourierIssue('061468')
+#     assert isinstance(courier_issue, CourierIssue)
 
-    assert courier_issue.num_articles == 3
-    assert len(courier_issue) == 36
-    assert courier_issue.double_pages == [10, 17]
+#     assert courier_issue.num_articles == 3
+#     assert len(courier_issue) == 36
+#     assert courier_issue.double_pages == [10, 17]
 
 
 def test_create_non_existing_issue_raises_value_error():
@@ -107,19 +112,19 @@ def test_create_non_existing_issue_raises_value_error():
         CourierIssue('000000')
 
 
-@pytest.mark.legacy
-@pytest.mark.parametrize(
-    'courier_id, expected',
-    [
-        ('061468', [10, 17]),
-        ('069916', [10, 11, 24]),
-        ('125736', []),  # no double pages
-        ('110425', []),  # excluded
-    ],
-)
-def test_courier_issues_has_correct_double_pages(courier_id, expected):
-    result = CourierIssue(courier_id).double_pages
-    assert result == expected
+# @pytest.mark.legacy
+# @pytest.mark.parametrize(
+#     'courier_id, expected',
+#     [
+#         ('061468', [10, 17]),
+#         ('069916', [10, 11, 24]),
+#         ('125736', []),  # no double pages
+#         ('110425', []),  # excluded
+#     ],
+# )
+# def test_courier_issues_has_correct_double_pages(courier_id, expected):
+#     result = CourierIssue(courier_id).double_pages
+#     assert result == expected
 
 
 # @pytest.mark.skip('deprecated')
@@ -182,17 +187,77 @@ def test_to_pdf_page_number():
 # test ConsolidateArticleTexts
 # test ExtractArticles assigns articles to issue pages
 
-pytest.mark.skip('temp')
+# pytest.mark.skip('temp')
+# def test_main():
+
+#     ExtractArticles.extract(issue)
+#     assert IssueStatistics(issue).assigned_pages == 22
 
 
-def test_main():
-
+def test_issue_statistics_has_expected_values():
     issue = CourierIssue('012656')
-
-    assert IssueStatistics(issue).total_pages == 36
     assert IssueStatistics(issue).assigned_pages == 0
     assert IssueStatistics(issue).expected_article_pages == 23
     assert IssueStatistics(issue).number_of_articles == 5
+    assert IssueStatistics(issue).total_pages == 36
 
-    ExtractArticles.extract(issue)
+
+def test_issue_has_no_assigned_pages_as_default():
+    issue = CourierIssue('012656')
+    assert IssueStatistics(issue).assigned_pages == 0
+
+
+# FIXME: Check this
+def test_AssignArticlesToPages_assignes_expected_pages_to_issue():
+    issue = CourierIssue('012656')
+    AssignArticlesToPages().assign(issue)
+    assert issue.get_assigned_pages() == {
+        7,
+        8,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+    }
     assert IssueStatistics(issue).assigned_pages == 22
+    assert IssueStatistics(issue).consolidated_pages == 0
+
+    # assert len(issue.get_consolidated_pages()) == 0
+    # assert len(issue.get_assigned_pages()) == 22
+    # ConsolidateArticleTexts().consolidate(issue)
+    # assert len(issue.get_consolidated_pages()) == 22
+    # assert IssueStatistics(issue).assigned_pages == 22
+
+
+def test_issue_has_no_consolidated_pages_as_default():
+    issue = CourierIssue('012656')
+    assert IssueStatistics(issue).consolidated_pages == 0
+
+
+def test_ConsolidateArticleTexts():
+    issue = CourierIssue('012656')
+    assert issue is not None
+
+
+def test_export_articles_generates_expected_output():
+    with TemporaryDirectory() as output_dir:
+        export_articles('012656', output_dir)
+        assert len(sorted(Path(output_dir).glob('*.txt'))) == 5
+        assert filecmp.dircmp(output_dir, CONFIG.test_files_dir / 'expected/export_articles').diff_files == []
+        assert len(filecmp.dircmp(output_dir, CONFIG.test_files_dir / 'not_expected').diff_files) == 1
