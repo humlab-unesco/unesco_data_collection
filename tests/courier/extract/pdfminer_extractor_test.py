@@ -1,3 +1,5 @@
+# pylint: disable=consider-using-with
+
 from difflib import SequenceMatcher
 from pathlib import Path
 from tempfile import TemporaryDirectory
