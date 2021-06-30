@@ -13,8 +13,8 @@ from courier.config import get_config
 CONFIG = get_config()
 pdfcourier2text_path = CONFIG.project_root / 'courier/lib/pdfbox-app-3.0.0-SNAPSHOT.jar'
 
-jpype.addClassPath(pdfcourier2text_path)
 if not jpype.isJVMStarted():
+    jpype.addClassPath(pdfcourier2text_path)
     # jpype.startJVM(convertStrings=False)
     jpype.startJVM('-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.NoOpLog', convertStrings=False)
 import org.apache.pdfbox.tools as pdfbox_tools  # isort: skip  # noqa: E402
