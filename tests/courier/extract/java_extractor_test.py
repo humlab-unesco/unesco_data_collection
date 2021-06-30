@@ -12,7 +12,7 @@ def test_java_extractor():
     filename = CONFIG.pdf_dir / '012656engo.pdf'
     issue: ExtractedIssue = extractor.extract_issue(filename)
 
-    assert issue.page_count == 35
+    assert len(issue) == 35
     assert issue.pages[1].pdf_page_number == 2
     assert 'TREASURES' in issue.pages[1].content
     assert len(issue.pages[1].titles) == 1
@@ -35,6 +35,6 @@ def titles_in_content(issue: ExtractedIssue) -> bool:
     return all(
         [
             all([title in issue.pages[i].content for title in [title for title, _ in issue.pages[i].titles]])
-            for i in range(0, issue.page_count)
+            for i in range(0, len(issue))
         ]
     )

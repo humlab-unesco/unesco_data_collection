@@ -24,7 +24,6 @@ import org.apache.pdfbox.tools as pdfbox_tools  # isort: skip  # noqa: E402
 class ExtractedPage:
     pdf_page_number: int
     content: str
-    # NOTE: titles optional?
     titles: List[Tuple[str, int]]
 
 
@@ -38,9 +37,7 @@ class ExtractedIssue:
 
     pages: List[ExtractedPage]
 
-    # TODO: override __len__ instead?
-    @property
-    def page_count(self) -> int:
+    def __len__(self) -> int:
         return len(self.pages or [])
 
 
@@ -66,12 +63,3 @@ class JavaExtractor:
 
         issue: ExtractedIssue = ExtractedIssue(pages=pages)
         return issue
-
-
-# java_extractor = JavaExtractor()
-# content = java_extractor.extract_texts(str(CONFIG.pdf_dir / '012656engo.pdf'))
-# # print(content[5])
-# with open(CONFIG.project_root / 'tests/output/java_extractor_tmp.txt', 'w') as fp:
-#     for i, x in enumerate(content, start=1):
-#         fp.write(f'---------- Page {i} ----------\n{x}\n')
-# len(content)
