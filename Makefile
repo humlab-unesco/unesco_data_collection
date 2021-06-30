@@ -5,13 +5,15 @@ BLACK_ARGS=--line-length 120 --target-version py38 --skip-string-normalization -
 FLAKE8_ARGS=--extend-ignore=BLK100,E302,E303
 MYPY_ARGS=--show-column-numbers --no-error-summary
 ISORT_ARGS=--profile black --float-to-top --line-length 120 --py 38
-#PYTEST_ARGS=--durations=0 --cov=$(PACKAGE_FOLDER) --cov-report=xml --cov-report=html tests
-#PYTEST_ARGS=--cov=$(PACKAGE_FOLDER) --cov-report=xml --cov-report=html
-PYTEST_ARGS=--cov=$(PACKAGE_FOLDER) --cov-report=xml --cov-report=html --cov-branch
+# PYTEST_ARGS=--durations=0 --cov=$(PACKAGE_FOLDER) --cov-report=xml --cov-report=html tests
+# PYTEST_ARGS=--cov=$(PACKAGE_FOLDER) --cov-report=xml --cov-report=html
+# PYTEST_ARGS=--cov=$(PACKAGE_FOLDER) --cov-report=xml --cov-report=html --cov-branch
 
 tidy: isort black
 
-lint: tidy pylint flake8 mypy
+lint: tidy pylint flake8 # mypy
+
+lint-typing: lint mypy
 
 clean:
 	@rm -rf .coverage coverage.xml htmlcov .nox
@@ -21,20 +23,20 @@ clean:
 	@rm -rf tests/output
 
 test: output-dir
-	# @poetry run pytest $(PYTEST_ARGS) tests
 	@poetry run pytest --durations=0 tests
 	@rm -rf ./tests/output/*
 
 test-no-java: output-dir
-	@poetry run pytest -m "not java" $(PYTEST_ARGS) tests/courier
+	@poetry run pytest -m "not java" --durations=0 tests/courier
 	@rm -rf ./tests/output/*
 
 test-java: output-dir
-	@poetry run pytest -m "java" -p no:faulthandler tests/courier
+	# @poetry run pytest -m "java" -p no:faulthandler tests/courier
+	@poetry run pytest -m "java" tests/courier
 	@rm -rf ./tests/output/*
 
 test-legal-instruments: output-dir
-	@poetry run pytest --durations=0 tests/legal_instruments
+	@poetry run pytest --durations=0 --cov=tests/legal_instruments --cov-report=xml --cov-report=html --cov-branch tests/legal_instruments
 	@rm -rf ./tests/output/*
 
 test-courier: output-dir
@@ -47,7 +49,7 @@ retest: output-dir
 output-dir:
 	@mkdir -p ./tests/output
 
-.PHONY: retest test-legal-instruments test-courier test-no-java test-java
+.PHONY: retest test-legal-instruments test-courier test-no-java test-java lint-typing
 
 pylint:
 	@poetry run pylint --version | grep pylint
