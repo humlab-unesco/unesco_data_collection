@@ -14,12 +14,13 @@ from courier.config import get_config
 
 CONFIG = get_config()
 
+# FIXME: Cleanup
 # pdfcourier2text_path = CONFIG.project_root / 'courier/lib/pdfbox-app-3.0.0-SNAPSHOT.jar'
-
 cache_dir = Path(AppDirs('python-pdfbox').user_cache_dir)
 pdfbox_path = list(cache_dir.glob('pdfbox-app-*.jar'))[-1]
 pdfcourier2text_path = CONFIG.project_root / 'courier/lib/pdfextract-1.0-SNAPSHOT.jar'
 
+# FIXME: Move to JavaExtractor class, add java args as option, add class paths at appropriate places, rename alias in 'import as'
 if not jpype.isJVMStarted():
     jpype.addClassPath(pdfbox_path)
     jpype.addClassPath(pdfcourier2text_path)
