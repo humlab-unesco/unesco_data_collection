@@ -38,3 +38,17 @@ def titles_in_content(issue: ExtractedIssue) -> bool:
             for i in range(0, len(issue))
         ]
     )
+
+
+# FIXME: Compare with pdfbox extract
+@pytest.mark.java
+def test_extract_issue_returns_expected_content():
+    extractor: JavaExtractor = JavaExtractor()
+    filename = CONFIG.pdf_dir / '012656engo.pdf'
+    issue: ExtractedIssue = extractor.extract_issue(filename)
+
+    p = issue.pages[2].content
+    with open(CONFIG.pages_dir / 'pdfbox/012656engo_0003.txt', 'r') as fp:
+        text = fp.read().strip()
+
+    assert p == text
